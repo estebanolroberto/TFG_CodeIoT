@@ -8,7 +8,7 @@
 #include "MQTT.hpp"
 #include "ESP32_Utils.hpp"
 #include "ESP32_Utils_MQTT_Async.hpp"
-const char *HTU_MQTT_TOPIC = "htu21d";
+const char *HTU_MQTT_TOPIC = "sensorHTU";
 const char *BMP_MQTT_TOPIC = "bmp280";
 
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
@@ -56,7 +56,7 @@ void loop() {
         Serial.println("Se detectó el sensor HTU21D.");
         Serial.print("Humedad: ");
         Serial.print(htu21d.readHumidity());
-        sensor_htu["pressure"] = htu21d.readHumidity();
+        sensor_htu["humidity"] = htu21d.readHumidity();
         Serial.println(" %");
         Serial.print("Temperatura: ");
         Serial.print(htu21d.readTemperature());

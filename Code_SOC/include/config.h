@@ -6,7 +6,7 @@ IPAddress ip(192, 168, 1, 200);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 
-const IPAddress MQTT_HOST(192, 168, 0, 114); //ip del broker
+const IPAddress MQTT_HOST(192, 168, 0, 118); //ip del broker
 const int MQTT_PORT = 1883;
 const char *MQTT_USER = "roberto";
 const char *MQTT_PASSWORD = "1299";

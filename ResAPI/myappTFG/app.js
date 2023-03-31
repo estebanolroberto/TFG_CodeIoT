@@ -3,11 +3,18 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var mongoose = require('mongoose');
+var debug = require('debug')('appSmartCity:server');
+var bodyParser = require("body-parser");
+var cors = require('cors');
+
+const dotenv = require('dotenv');
+// get config vars
+dotenv.config();
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var sensorTempRouter = require('./routes/sensorHTU');
-
 var app = express();
 
 // view engine setup
@@ -19,6 +26,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(cors());
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
@@ -40,4 +51,13 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+ // MongoDB Atlas DB cluster connection
+ mongoose.set("strictQuery", false);
+ mongoose
+ .connect(
+   process.env.MONGODB,
+   { useNewUrlParser: true, useUnifiedTopology: true }
+ )
+ .then(() => debug("MongoDB Atlas DataBase connection successful"));
+ 
 module.exports = app;
