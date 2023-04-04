@@ -2,9 +2,9 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
 var SensorHTUSchema = new Schema({
-    id:String,
-    humidity:String,
-    temperature:String
+    sensor_type:String,
+    temperature:String,
+    humidity:String
 },
 { collection: 'sensorHTU' });
 
