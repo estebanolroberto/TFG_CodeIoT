@@ -9,8 +9,7 @@ API_BASE_URL = "http://localhost:5000/"
 def on_connect(client, user, flags, rc):
     print("Connect with result code: " + str(rc))
     client.subscribe("sensorHTU")
-    client.subscribe("topic_pir_2")
-    client.subscribe("topic_potent_2")
+    client.subscribe("sensorBMP")
 
 # método para recibir mensajes
 def on_message(client, user, msg):
@@ -31,25 +30,19 @@ def on_message(client, user, msg):
             "humidity": humidity
             }
         
-    elif msg.topic == "topic_pir_2":
-        collection_name = "pir"
+    elif msg.topic == "sensorBMP":
+        collection_name = "sensorBMP"
         # Convertir el mensaje de MQTT a un objeto JSON con el campo de presencia
         message_json = json.loads(msg.payload)
-        presence = message_json["presence"]
+        temperature_bmp = message_json["temperature"]
+        pressure_bmp = message_json["pressure"]
+        altitude_bmp = message_json["altitude"]
         # Preparar el objeto JSON con los datos del sensor PIR
         data = {
-            "sensor_type": "PIR",
-            "presence": presence
-            }
-    elif msg.topic == "topic_potent_2":
-        collection_name = "potent"
-        # Convertir el mensaje de MQTT a un objeto JSON con el campo de potencia
-        message_json = json.loads(msg.payload)
-        power = message_json["power"]
-        # Preparar el objeto JSON con los datos del sensor de potencia
-        data = {
-            "sensor_type": "POTENT",
-            "power": power
+            "sensor_type": "BMP",
+            "temperature": temperature_bmp,
+            "pressure": pressure_bmp,
+            "altitude": altitude_bmp,
             }
 
     # Generar la URL de la API REST local en función del tema MQTT y la colección correspondiente
