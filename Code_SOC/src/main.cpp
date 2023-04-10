@@ -9,7 +9,7 @@
 #include "ESP32_Utils.hpp"
 #include "ESP32_Utils_MQTT_Async.hpp"
 const char *HTU_MQTT_TOPIC = "sensorHTU";
-const char *BMP_MQTT_TOPIC = "bmp280";
+const char *BMP_MQTT_TOPIC = "sensorBMP";
 
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
 Adafruit_BMP280 bmp280;
