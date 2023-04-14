@@ -16,6 +16,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var sensorTempRouter = require('./routes/sensorHTU');
 var sensorBMP280 = require('./routes/sensorBMP');
+var sensores = require('./routes/sensor');
 var app = express();
 
 // view engine setup
@@ -36,6 +37,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/sensorHTU', sensorTempRouter);
 app.use('/sensorBMP', sensorBMP280);
+app.use('/sensores', sensores);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
