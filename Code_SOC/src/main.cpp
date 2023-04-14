@@ -1,4 +1,5 @@
 #include <Wire.h>
+#include <HTTPClient.h>
 #include <WiFi.h>
 #include <AsyncMqttClient.h>
 #include <ArduinoJson.h>
@@ -28,6 +29,43 @@ void setup() {
 }
 
 void loop() {
+
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(url);
+
+    int httpCode = http.GET();
+    if (httpCode == HTTP_CODE_OK) {
+      String payload = http.getString();
+      Serial.println("Respuesta de la API REST:");
+      Serial.println(payload);
+
+      DynamicJsonDocument doc(1024);
+      deserializeJson(doc, payload);
+
+      // Obtener los datos de interés del JSON y mostrarlos por Serial
+      String sensor_name = doc["name"];
+      String type_connection = doc["type_connection"];
+      String direccion = doc["direccion"];
+      String description = doc["description"];
+      Serial.print("Nombre del sensor: ");
+      Serial.print(sensor_name);
+      Serial.println();
+      Serial.print("Type connection: ");
+      Serial.print(type_connection);
+      Serial.println();
+      Serial.print("direccion: ");
+      Serial.print(direccion);
+      Serial.println();
+      Serial.print("Description: ");
+      Serial.print(description);
+      Serial.println();
+    } else {
+      Serial.printf("Error al hacer la petición HTTP: %d\n", httpCode);
+    }
+
+    http.end();
+  }
   unsigned long currentMillis = millis();
   StaticJsonDocument<200> sensor_htu;
   StaticJsonDocument<200> sensor_bmp;
