@@ -1,5 +1,7 @@
 #include <Wire.h>
+#include "TimerOne.h"
 #include <HTTPClient.h>
+#include <TimerThree.h>
 #include <WiFi.h>
 #include <AsyncMqttClient.h>
 #include <ArduinoJson.h>
@@ -11,7 +13,7 @@
 #include "ESP32_Utils_MQTT_Async.hpp"
 const char *HTU_MQTT_TOPIC = "sensorHTU";
 const char *BMP_MQTT_TOPIC = "sensorBMP";
-
+TimerOne Timer1;              
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
 Adafruit_BMP280 bmp280;
 HTTPClient http;
@@ -20,19 +22,24 @@ unsigned long lastRead = 0;
 bool htu21dDetected = false;
 bool bmp280Detected = false;
 bool noSensorDetected = false;
+bool readSensorsStart = false;
 String URL = url;
 String lastItem = "";
 String currentItem = "";
 
 String getLastItem();
+void  readSensors();
 
 void setup() {
+
   Serial.begin(9600);
   Wire.begin();
   WiFi.onEvent(WiFiEvent);
   InitMqtt();
   ConnectWiFi_STA();
   http.begin(URL);
+  //Timer1.initialize(5000000);
+  //Timer1.attachInterrupt(readSensors);
 }
 
 void loop() {
@@ -45,9 +52,8 @@ void loop() {
   String String_sensor_bmp;
 
 
-  if (currentMillis - lastRead >= 5000) {
-    lastRead = currentMillis;
-    
+  if(readSensorsStart){
+    readSensorsStart = false;
     currentItem = getLastItem();
     if (currentItem != lastItem) {
       Serial.println("Nuevo elemento añadido: " + currentItem);
@@ -99,6 +105,10 @@ void loop() {
       noSensorDetected = true;
     }
   }
+}
+
+void readSensors(){
+  readSensorsStart = true;
 }
 
 String getLastItem() {
