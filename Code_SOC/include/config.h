@@ -1,7 +1,7 @@
 const char* ssid     = "VodafoneMobileWiFi-984998";
 const char* password = "2009693581";
 const char *hostname = "ESP32_CASA";
-const char* url = "http://localhost:5000/sensores";
+const char* url = "http://192.168.0.118:3000/sensores";
 
 IPAddress ip(192, 168, 1, 200);
 IPAddress gateway(192, 168, 1, 1);

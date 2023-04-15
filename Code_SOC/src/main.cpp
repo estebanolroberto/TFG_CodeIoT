@@ -14,11 +14,17 @@ const char *BMP_MQTT_TOPIC = "sensorBMP";
 
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
 Adafruit_BMP280 bmp280;
+HTTPClient http;
 
 unsigned long lastRead = 0;
 bool htu21dDetected = false;
 bool bmp280Detected = false;
 bool noSensorDetected = false;
+String URL = url;
+String lastItem = "";
+String currentItem = "";
+
+String getLastItem();
 
 void setup() {
   Serial.begin(9600);
@@ -26,56 +32,28 @@ void setup() {
   WiFi.onEvent(WiFiEvent);
   InitMqtt();
   ConnectWiFi_STA();
+  http.begin(URL);
 }
 
 void loop() {
 
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.begin(url);
 
-    int httpCode = http.GET();
-    if (httpCode == HTTP_CODE_OK) {
-      String payload = http.getString();
-      Serial.println("Respuesta de la API REST:");
-      Serial.println(payload);
-
-      DynamicJsonDocument doc(1024);
-      deserializeJson(doc, payload);
-
-      // Obtener los datos de interés del JSON y mostrarlos por Serial
-      String sensor_name = doc["name"];
-      String type_connection = doc["type_connection"];
-      String direccion = doc["direccion"];
-      String description = doc["description"];
-      Serial.print("Nombre del sensor: ");
-      Serial.print(sensor_name);
-      Serial.println();
-      Serial.print("Type connection: ");
-      Serial.print(type_connection);
-      Serial.println();
-      Serial.print("direccion: ");
-      Serial.print(direccion);
-      Serial.println();
-      Serial.print("Description: ");
-      Serial.print(description);
-      Serial.println();
-    } else {
-      Serial.printf("Error al hacer la petición HTTP: %d\n", httpCode);
-    }
-
-    http.end();
-  }
   unsigned long currentMillis = millis();
   StaticJsonDocument<200> sensor_htu;
   StaticJsonDocument<200> sensor_bmp;
   String String_sensor_htu;
   String String_sensor_bmp;
 
+
   if (currentMillis - lastRead >= 5000) {
     lastRead = currentMillis;
+    
+    currentItem = getLastItem();
+    if (currentItem != lastItem) {
+      Serial.println("Nuevo elemento añadido: " + currentItem);
+      lastItem = currentItem;
+    }
 
-    // Check if BMP280 sensor is connected
     Wire.beginTransmission(0x76);
     if (Wire.endTransmission() == 0) {
       bmp280.begin(0x76);
@@ -98,7 +76,6 @@ void loop() {
       bmp280Detected = true;
     }
 
-    // Check if HTU21D sensor is connected
     Wire.beginTransmission(0x40);
     if (Wire.endTransmission() == 0) {
       htu21d.begin();
@@ -117,10 +94,33 @@ void loop() {
       htu21dDetected = true;
     }
 
-    // Check if no sensor is detected
     if (!htu21dDetected && !bmp280Detected && !noSensorDetected && currentMillis > 2000) {
       Serial.println("No se detectó ningún sensor.");
       noSensorDetected = true;
     }
   }
+}
+
+String getLastItem() {
+  
+  int httpCode = http.GET();
+  String payload = http.getString();
+
+  Serial.println("Código HTTP: " + String(httpCode));
+  //Serial.println("Respuesta: " + payload);
+
+  String lastItemValue = "";
+  if (httpCode == 200) {
+    DynamicJsonDocument doc(1024);
+    deserializeJson(doc, payload);
+    // Obtener el último elemento del objeto JSON
+    int size = doc.size();
+    JsonObject lastItem = doc[size - 1];
+    String name = lastItem["name"].as<String>();
+    String type_connection = lastItem["type_connection"].as<String>();
+    String direction = lastItem["direction"].as<String>();
+    String description = lastItem["description"].as<String>();
+    lastItemValue="Name: "+ name +", Tipo Conexión: "+type_connection+" Address:  "+direction + "Description: "+description;
+  }
+  return lastItemValue;
 }
