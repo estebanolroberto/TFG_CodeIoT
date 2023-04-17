@@ -5,7 +5,10 @@ var Sensorchema = new Schema({
     name:String,
     type_connection:String,
     direction:String,
-    description:String
+    description:String,
+    frequency_data:String,
+    min_valueData:String,
+    max_valueData:String
 },
 { collection: 'sensores' });
 
