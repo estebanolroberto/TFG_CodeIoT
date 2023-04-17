@@ -1,7 +1,5 @@
 #include <Wire.h>
-#include "TimerOne.h"
 #include <HTTPClient.h>
-#include <TimerThree.h>
 #include <WiFi.h>
 #include <AsyncMqttClient.h>
 #include <ArduinoJson.h>
@@ -12,8 +10,7 @@
 #include "ESP32_Utils.hpp"
 #include "ESP32_Utils_MQTT_Async.hpp"
 const char *HTU_MQTT_TOPIC = "sensorHTU";
-const char *BMP_MQTT_TOPIC = "sensorBMP";
-TimerOne Timer1;              
+const char *BMP_MQTT_TOPIC = "sensorBMP";          
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
 Adafruit_BMP280 bmp280;
 HTTPClient http;
@@ -22,24 +19,33 @@ unsigned long lastRead = 0;
 bool htu21dDetected = false;
 bool bmp280Detected = false;
 bool noSensorDetected = false;
-bool readSensorsStart = false;
 String URL = url;
 String lastItem = "";
 String currentItem = "";
 
 String getLastItem();
 void  readSensors();
+volatile bool interruptFlag = false;
+int totalInterruptCounter;
+ 
+hw_timer_t * timer = NULL;
+ 
+void IRAM_ATTR onTimer() {
+  interruptFlag = true;
+}
 
 void setup() {
 
   Serial.begin(9600);
   Wire.begin();
-  WiFi.onEvent(WiFiEvent);
-  InitMqtt();
-  ConnectWiFi_STA();
-  http.begin(URL);
-  //Timer1.initialize(5000000);
-  //Timer1.attachInterrupt(readSensors);
+  //WiFi.onEvent(WiFiEvent);
+  //InitMqtt();
+  //ConnectWiFi_STA();
+  //http.begin(URL);
+  timer = timerBegin(0, 80, true);
+  timerAttachInterrupt(timer, &onTimer, true);
+  timerAlarmWrite(timer, 5000000, true);
+  timerAlarmEnable(timer);
 }
 
 void loop() {
@@ -52,13 +58,13 @@ void loop() {
   String String_sensor_bmp;
 
 
-  if(readSensorsStart){
-    readSensorsStart = false;
-    currentItem = getLastItem();
-    if (currentItem != lastItem) {
-      Serial.println("Nuevo elemento añadido: " + currentItem);
-      lastItem = currentItem;
-    }
+  if (interruptFlag) {
+    interruptFlag = false;
+    //currentItem = getLastItem();
+    //if (currentItem != lastItem) {
+    //  Serial.println("Nuevo elemento añadido: " + currentItem);
+    //  lastItem = currentItem;
+   // }
 
     Wire.beginTransmission(0x76);
     if (Wire.endTransmission() == 0) {
@@ -78,7 +84,7 @@ void loop() {
       Serial.println(" m");
       Serial.println();
       serializeJson(sensor_bmp, String_sensor_bmp);
-      PublishMqtt(String_sensor_bmp.c_str(), BMP_MQTT_TOPIC);
+      //PublishMqtt(String_sensor_bmp.c_str(), BMP_MQTT_TOPIC);
       bmp280Detected = true;
     }
 
@@ -96,7 +102,7 @@ void loop() {
       Serial.println(" *C");
       Serial.println();
       serializeJson(sensor_htu, String_sensor_htu);
-      PublishMqtt(String_sensor_htu.c_str(), HTU_MQTT_TOPIC);
+      //PublishMqtt(String_sensor_htu.c_str(), HTU_MQTT_TOPIC);
       htu21dDetected = true;
     }
 
@@ -107,9 +113,6 @@ void loop() {
   }
 }
 
-void readSensors(){
-  readSensorsStart = true;
-}
 
 String getLastItem() {
   
