@@ -38,10 +38,10 @@ void setup() {
 
   Serial.begin(9600);
   Wire.begin();
-  //WiFi.onEvent(WiFiEvent);
-  //InitMqtt();
-  //ConnectWiFi_STA();
-  //http.begin(URL);
+  WiFi.onEvent(WiFiEvent);
+  InitMqtt();
+  ConnectWiFi_STA();
+  http.begin(URL);
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimer, true);
   timerAlarmWrite(timer, 5000000, true);
@@ -60,11 +60,11 @@ void loop() {
 
   if (interruptFlag) {
     interruptFlag = false;
-    //currentItem = getLastItem();
-    //if (currentItem != lastItem) {
-    //  Serial.println("Nuevo elemento añadido: " + currentItem);
-    //  lastItem = currentItem;
-   // }
+    currentItem = getLastItem();
+    if (currentItem != lastItem) {
+      Serial.println("Nuevo elemento añadido: " + currentItem);
+      lastItem = currentItem;
+    }
 
     Wire.beginTransmission(0x76);
     if (Wire.endTransmission() == 0) {
@@ -84,7 +84,7 @@ void loop() {
       Serial.println(" m");
       Serial.println();
       serializeJson(sensor_bmp, String_sensor_bmp);
-      //PublishMqtt(String_sensor_bmp.c_str(), BMP_MQTT_TOPIC);
+      PublishMqtt(String_sensor_bmp.c_str(), BMP_MQTT_TOPIC);
       bmp280Detected = true;
     }
 
@@ -102,7 +102,7 @@ void loop() {
       Serial.println(" *C");
       Serial.println();
       serializeJson(sensor_htu, String_sensor_htu);
-      //PublishMqtt(String_sensor_htu.c_str(), HTU_MQTT_TOPIC);
+      PublishMqtt(String_sensor_htu.c_str(), HTU_MQTT_TOPIC);
       htu21dDetected = true;
     }
 
@@ -119,14 +119,11 @@ String getLastItem() {
   int httpCode = http.GET();
   String payload = http.getString();
 
-  Serial.println("Código HTTP: " + String(httpCode));
-  //Serial.println("Respuesta: " + payload);
 
   String lastItemValue = "";
   if (httpCode == 200) {
     DynamicJsonDocument doc(1024);
     deserializeJson(doc, payload);
-    // Obtener el último elemento del objeto JSON
     int size = doc.size();
     JsonObject lastItem = doc[size - 1];
     String name = lastItem["name"].as<String>();
