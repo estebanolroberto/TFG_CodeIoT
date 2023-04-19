@@ -5,11 +5,11 @@
 #include <ArduinoJson.h>
 #include <Adafruit_HTU21DF.h>
 #include <Adafruit_BMP280.h>
-#include "config.h" // Sustituir con datos de vuestra red
+#include "config.h" 
 #include "MQTT.hpp"
+#include "I2CScanner.h"
 #include "ESP32_Utils.hpp"
 #include "ESP32_Utils_MQTT_Async.hpp"
-
 
 #define BMP280_ADDRESS (0x76)
 #define HTU21DF_I2CADDR (0x40)
@@ -17,22 +17,30 @@ const char *HTU_MQTT_TOPIC = "sensorHTU";
 const char *BMP_MQTT_TOPIC = "sensorBMP";          
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
 Adafruit_BMP280 bmp280;
+I2CScanner scanner;
 HTTPClient http;
 hw_timer_t * timer = NULL;
 
 bool htu21dDetected = false;
 bool bmp280Detected = false;
 volatile bool interruptFlag = false;
+volatile bool interruptFlag_scanner = false;
 
 String URL = url;
 String lastItem = "";
 String currentItem = "";
 int HTTPCODE_SUCCESS = 200;
-long time_presenceI2C= 5000000;
- 
- 
+unsigned long time_presenceI2C= 5000000;
+unsigned long time_scanner= 10000000;
+void i2c_Scanner();
+void handleSensorData();
+String getLastItem();
+
 void IRAM_ATTR onTimer() {
   interruptFlag = true;
+}
+void IRAM_ATTR onTimerScanner() {
+  interruptFlag_scanner = true;
 }
 
 void setup() {
@@ -43,9 +51,15 @@ void setup() {
   InitMqtt();
   ConnectWiFi_STA();
   http.begin(URL);
+  scanner.Init();
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimer, true);
   timerAlarmWrite(timer, time_presenceI2C, true);
+  timerAlarmEnable(timer);
+
+  timer = timerBegin(1, 10000, true);
+  timerAttachInterrupt(timer, &onTimerScanner, true);
+  timerAlarmWrite(timer, time_scanner, true);
   timerAlarmEnable(timer);
 }
 
@@ -55,6 +69,15 @@ void loop() {
     interruptFlag = false;
     handleSensorData();
   }
+
+  if(interruptFlag_scanner){
+    interruptFlag_scanner =false;
+    i2c_Scanner();
+  }
+}
+
+void i2c_Scanner(){
+  scanner.Scan();
 }
 
 void handleSensorData() {
