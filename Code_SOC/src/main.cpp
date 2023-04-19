@@ -7,9 +7,9 @@
 #include <Adafruit_BMP280.h>
 #include "config.h" 
 #include "MQTT.hpp"
-#include "I2CScanner.h"
 #include "ESP32_Utils.hpp"
 #include "ESP32_Utils_MQTT_Async.hpp"
+#include <list>
 
 #define BMP280_ADDRESS (0x76)
 #define HTU21DF_I2CADDR (0x40)
@@ -17,7 +17,6 @@ const char *HTU_MQTT_TOPIC = "sensorHTU";
 const char *BMP_MQTT_TOPIC = "sensorBMP";          
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
 Adafruit_BMP280 bmp280;
-I2CScanner scanner;
 HTTPClient http;
 hw_timer_t * timer = NULL;
 
@@ -32,6 +31,9 @@ String currentItem = "";
 int HTTPCODE_SUCCESS = 200;
 unsigned long time_presenceI2C= 5000000;
 unsigned long time_scanner= 10000000;
+std::list<String> activeItems;
+
+
 void i2c_Scanner();
 void handleSensorData();
 String getLastItem();
@@ -51,7 +53,6 @@ void setup() {
   InitMqtt();
   ConnectWiFi_STA();
   http.begin(URL);
-  scanner.Init();
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimer, true);
   timerAlarmWrite(timer, time_presenceI2C, true);
@@ -77,7 +78,21 @@ void loop() {
 }
 
 void i2c_Scanner(){
-  scanner.Scan();
+  activeItems.clear();
+  byte error, address;
+  int nDevices;
+  nDevices = 0;
+  for(address = 1; address < 127; address++ )
+  {
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+    if (error == 0)
+    {
+      activeItems.push_back("Item " + String(address)); // Agregar el item escaneado a la lista
+      nDevices++;
+    }
+  }
+  Serial.println("Se encontraron " + String(nDevices) + " dispositivos I2C.");
 }
 
 void handleSensorData() {
