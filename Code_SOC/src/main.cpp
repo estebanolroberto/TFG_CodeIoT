@@ -10,9 +10,16 @@
 #include "ESP32_Utils.hpp"
 #include "ESP32_Utils_MQTT_Async.hpp"
 #include <list>
-
 #define BMP280_ADDRESS (0x76)
 #define HTU21DF_I2CADDR (0x40)
+
+struct Item {
+  String name;
+  String type_connection;
+  String direction;
+  String description;
+};
+
 const char *HTU_MQTT_TOPIC = "sensorHTU";
 const char *BMP_MQTT_TOPIC = "sensorBMP";          
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
@@ -24,25 +31,32 @@ bool htu21dDetected = false;
 bool bmp280Detected = false;
 volatile bool interruptFlag = false;
 volatile bool interruptFlag_scanner = false;
+volatile bool interruptFlag_BD = false;
 
 String URL = url;
 String lastItem = "";
 String currentItem = "";
 int HTTPCODE_SUCCESS = 200;
 unsigned long time_presenceI2C= 5000000;
-unsigned long time_scanner= 10000000;
+unsigned long time_scanner= 20000000;
+unsigned long time_scanner_bd= 10000000;
 std::list<String> activeItems;
+std::list<Item> itemList;
 
 
 void i2c_Scanner();
 void handleSensorData();
-String getLastItem();
+void getAllItems();
 
 void IRAM_ATTR onTimer() {
   interruptFlag = true;
 }
 void IRAM_ATTR onTimerScanner() {
   interruptFlag_scanner = true;
+}
+
+void IRAM_ATTR onTimerListBD(){
+  interruptFlag_BD =true;
 }
 
 void setup() {
@@ -62,6 +76,11 @@ void setup() {
   timerAttachInterrupt(timer, &onTimerScanner, true);
   timerAlarmWrite(timer, time_scanner, true);
   timerAlarmEnable(timer);
+
+  timer = timerBegin(2, 10000, true);
+  timerAttachInterrupt(timer, &onTimerListBD, true);
+  timerAlarmWrite(timer, time_scanner_bd, true);
+  timerAlarmEnable(timer);
 }
 
 void loop() {
@@ -74,6 +93,21 @@ void loop() {
   if(interruptFlag_scanner){
     interruptFlag_scanner =false;
     i2c_Scanner();
+  }
+  if(interruptFlag_BD){
+    interruptFlag_BD = false;
+     getAllItems();
+    for (const auto& item : itemList) {
+      Serial.print("Name: ");
+      Serial.print(item.name);
+      Serial.print(", Tipo Conexión: ");
+      Serial.print(item.type_connection);
+      Serial.print(", Address: ");
+      Serial.print(item.direction);
+      Serial.print(", Description: ");
+      Serial.println(item.description);
+  }
+  itemList.clear();
   }
 }
 
@@ -102,12 +136,6 @@ void handleSensorData() {
   StaticJsonDocument<200> sensor_bmp;
   String String_sensor_htu;
   String String_sensor_bmp;
-
-  currentItem = getLastItem();
-  if (currentItem != lastItem) {
-    Serial.println("Nuevo elemento añadido: " + currentItem);
-    lastItem = currentItem;
-  }
 
   Wire.beginTransmission(BMP280_ADDRESS);
   if (Wire.endTransmission() == 0) {
@@ -153,23 +181,22 @@ void handleSensorData() {
     Serial.println("No se detectó ningún sensor.");
   }
 }
-String getLastItem() {
-  
+void getAllItems() {
   int httpCode = http.GET();
   String payload = http.getString();
 
-
-  String lastItemValue = "";
   if (httpCode == HTTPCODE_SUCCESS) {
     DynamicJsonDocument doc(1024);
     deserializeJson(doc, payload);
     int size = doc.size();
-    JsonObject lastItem = doc[size - 1];
-    String name = lastItem["name"].as<String>();
-    String type_connection = lastItem["type_connection"].as<String>();
-    String direction = lastItem["direction"].as<String>();
-    String description = lastItem["description"].as<String>();
-    lastItemValue="Name: "+ name +", Tipo Conexión: "+type_connection+" Address:  "+direction + "Description: "+description;
+    for (int i = 0; i < size; i++) {
+      JsonObject item = doc[i];
+      Item newItem; // Crear un nuevo objeto Item
+      newItem.name = item["name"].as<String>();
+      newItem.type_connection = item["type_connection"].as<String>();
+      newItem.direction = item["direction"].as<String>();
+      newItem.description = item["description"].as<String>();
+      itemList.push_back(newItem); // Agregar el nuevo Item a la lista
+    }
   }
-  return lastItemValue;
 }
