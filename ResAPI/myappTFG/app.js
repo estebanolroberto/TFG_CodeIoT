@@ -20,7 +20,7 @@ var sensores = require('./routes/sensor');
 var app = express();
 
 // view engine setup
-app.listen(3000, '192.168.0.118')
+//app.listen(3000, '192.168.0.120')
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 app.use(logger('dev'));

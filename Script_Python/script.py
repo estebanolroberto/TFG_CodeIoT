@@ -64,6 +64,6 @@ client.on_message = on_message
 
 # conexión al broker
 client.username_pw_set("roberto", "1299")
-client.connect("192.168.0.118", 1883, 60)
+client.connect("192.168.0.120", 1883, 60)
 
 client.loop_forever()

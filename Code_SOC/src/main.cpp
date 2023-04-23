@@ -38,7 +38,7 @@ String lastItem = "";
 String currentItem = "";
 int HTTPCODE_SUCCESS = 200;
 unsigned long time_presenceI2C= 5000000;
-unsigned long time_scanner= 20000000;
+unsigned long time_scanner= 10000000;
 unsigned long time_scanner_bd= 10000000;
 std::list<String> activeItems;
 std::list<Item> itemList;
@@ -72,12 +72,12 @@ void setup() {
   timerAlarmWrite(timer, time_presenceI2C, true);
   timerAlarmEnable(timer);
 
-  timer = timerBegin(1, 10000, true);
+  timer = timerBegin(1, 80, true);
   timerAttachInterrupt(timer, &onTimerScanner, true);
   timerAlarmWrite(timer, time_scanner, true);
   timerAlarmEnable(timer);
 
-  timer = timerBegin(2, 10000, true);
+  timer = timerBegin(2, 80, true);
   timerAttachInterrupt(timer, &onTimerListBD, true);
   timerAlarmWrite(timer, time_scanner_bd, true);
   timerAlarmEnable(timer);
@@ -89,11 +89,14 @@ void loop() {
     interruptFlag = false;
     handleSensorData();
   }
-
+  
   if(interruptFlag_scanner){
-    interruptFlag_scanner =false;
+    interruptFlag_scanner = false;
     i2c_Scanner();
   }
+  
+
+  /*
   if(interruptFlag_BD){
     interruptFlag_BD = false;
      getAllItems();
@@ -109,25 +112,27 @@ void loop() {
   }
   itemList.clear();
   }
+  */
 }
 
-void i2c_Scanner(){
+void i2c_Scanner() {
   activeItems.clear();
   byte error, address;
   int nDevices;
   nDevices = 0;
-  for(address = 1; address < 127; address++ )
-  {
+  Serial.println("Dispositivos encontrados en el bus I2C:");
+  for (address = 1; address < 127; address++) {
     Wire.beginTransmission(address);
     error = Wire.endTransmission();
-    if (error == 0)
-    {
-      activeItems.push_back("Item " + String(address)); // Agregar el item escaneado a la lista
+    if (error == 0) {
+      activeItems.push_back("Item " + String(address));
       nDevices++;
+      Serial.println("Address: 0x" + String(address, HEX));
     }
   }
-  Serial.println("Se encontraron " + String(nDevices) + " dispositivos I2C.");
+  Serial.println("Total de dispositivos encontrados: " + String(nDevices));
 }
+
 
 void handleSensorData() {
   unsigned long currentMillis = millis();
