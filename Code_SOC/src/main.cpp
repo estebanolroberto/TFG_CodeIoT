@@ -39,7 +39,7 @@ String currentItem = "";
 int HTTPCODE_SUCCESS = 200;
 unsigned long time_presenceI2C= 5000000;
 unsigned long time_scanner= 10000000;
-unsigned long time_scanner_bd= 10000000;
+unsigned long time_scanner_bd= 7000000;
 std::list<String> activeItems;
 std::list<Item> itemList;
 
@@ -84,7 +84,6 @@ void setup() {
 }
 
 void loop() {
-
   if (interruptFlag) {
     interruptFlag = false;
     handleSensorData();
@@ -95,11 +94,11 @@ void loop() {
     i2c_Scanner();
   }
   
-
-  /*
+  
   if(interruptFlag_BD){
     interruptFlag_BD = false;
      getAllItems();
+     Serial.println("Dispositivos registrados en BD:");
     for (const auto& item : itemList) {
       Serial.print("Name: ");
       Serial.print(item.name);
@@ -112,7 +111,7 @@ void loop() {
   }
   itemList.clear();
   }
-  */
+  
 }
 
 void i2c_Scanner() {
