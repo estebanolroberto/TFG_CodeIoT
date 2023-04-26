@@ -19,27 +19,13 @@ struct Item {
   String direction;
   String description;
 };
-
-const char *HTU_MQTT_TOPIC = "sensorHTU";
-const char *BMP_MQTT_TOPIC = "sensorBMP";          
+       
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
 Adafruit_BMP280 bmp280;
 HTTPClient http;
 hw_timer_t * timer = NULL;
+String lastItem,currentItem = "";
 
-bool htu21dDetected = false;
-bool bmp280Detected = false;
-volatile bool interruptFlag = false;
-volatile bool interruptFlag_scanner = false;
-volatile bool interruptFlag_BD = false;
-
-String URL = url;
-String lastItem = "";
-String currentItem = "";
-int HTTPCODE_SUCCESS = 200;
-unsigned long time_presenceI2C= 5000000;
-unsigned long time_scanner= 10000000;
-unsigned long time_scanner_bd= 7000000;
 std::list<String> activeItems;
 std::list<Item> itemList;
 
@@ -66,7 +52,7 @@ void setup() {
   WiFi.onEvent(WiFiEvent);
   InitMqtt();
   ConnectWiFi_STA();
-  http.begin(URL);
+  http.begin(url);
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimer, true);
   timerAlarmWrite(timer, time_presenceI2C, true);
@@ -124,7 +110,7 @@ void i2c_Scanner() {
     Wire.beginTransmission(address);
     error = Wire.endTransmission();
     if (error == 0) {
-      activeItems.push_back("Item " + String(address));
+      activeItems.push_back("0x"+String(address));
       nDevices++;
       Serial.println("Address: 0x" + String(address, HEX));
     }
