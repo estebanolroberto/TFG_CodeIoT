@@ -18,6 +18,7 @@ struct Item {
   String type_connection;
   String direction;
   String description;
+  String data_measure;
 };
        
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
@@ -90,6 +91,8 @@ void loop() {
       Serial.print(item.name);
       Serial.print(", Tipo Conexión: ");
       Serial.print(item.type_connection);
+      Serial.print(", Address: ");
+      Serial.print(item.data_measure);
       Serial.print(", Address: ");
       Serial.print(item.direction);
       Serial.print(", Description: ");
