@@ -2,21 +2,6 @@ doctype html
 html
   head
     title Formulario para recoger datos del sensor
-    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
-    script.
-      $(document).ready(function() {
-        // Al cargar la página, deshabilitar el campo de dirección
-        $('#direccion').prop('disabled', true);
-
-        // Al cambiar la opción de tipo de conexión, habilitar o deshabilitar el campo de dirección
-        $('#type_connection').change(function() {
-          if ($(this).val() === 'I2C') {
-            $('#direccion').prop('disabled', false);
-          } else {
-            $('#direccion').prop('disabled', true);
-          }
-        });
-      });
   body
     h1 Formulario para recoger datos del sensor
     form(action="/sensores", method="POST")
@@ -31,13 +16,18 @@ html
         option(value="UART") UART
       br
 
-      label(for="direccion") Dirección:
-      input(type="text", id="direccion", name="direccion")
+      label(for="direction") Address :
+      input(type="text", id="direction", name="direction")
       br
 
       label(for="description") Descripción:
       textarea(id="description", name="description")
       br
+
+      label(for="data_measure") Medida:
+      textarea(type="text", id="data_measure", name="data_measure")
+      br
+
       label(for="frequency_data") Frequency:
       input(type="text", id="frequency_data", name="frequency_data")
       br

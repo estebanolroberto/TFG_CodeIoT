@@ -20,6 +20,13 @@ router.get('/:id', function (req, res, next) {
   });
 });
 
+/* GET single data by address */
+router.get('/direction/:id', function (req, res, next) {
+  sensores.find({"direction": req.params.id}, function(err,sensor){
+    if(err) res.status(500).send(err);
+    else res.status(200).json(sensor)
+  });
+});
 
 /* POST a new data */
 router.post("/", function (req, res, next) {
