@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
+#include <SPI.h>
 #include <AsyncMqttClient.h>
 #include <ArduinoJson.h>
 #include <Adafruit_HTU21DF.h>
@@ -27,10 +28,10 @@ HTTPClient http;
 hw_timer_t * timer = NULL;
 String lastItem,currentItem = "";
 
-std::list<String> activeItems;
+std::list<String> activeItems,activeItemsSPI;
 std::list<Item> itemList;
 
-
+void scanSPI();
 void i2c_Scanner();
 void handleSensorData();
 void getAllItems();
@@ -50,10 +51,13 @@ void setup() {
 
   Serial.begin(9600);
   Wire.begin();
+  SPI.begin();
   WiFi.onEvent(WiFiEvent);
   InitMqtt();
   ConnectWiFi_STA();
   http.begin(url);
+
+  /*TIMERS*/
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimer, true);
   timerAlarmWrite(timer, time_presenceI2C, true);
@@ -79,6 +83,7 @@ void loop() {
   if(interruptFlag_scanner){
     interruptFlag_scanner = false;
     i2c_Scanner();
+    scanSPI();
   }
   
   
@@ -192,4 +197,32 @@ void getAllItems() {
       itemList.push_back(newItem); // Agregar el nuevo Item a la lista
     }
   }
+}
+
+void scanSPI() {
+  activeItemsSPI.clear();
+  byte i;
+  byte error, address;
+  int nDevices_spi;
+  nDevices_spi = 0;
+  Serial.println("Scanning SPI Devices...");
+
+  for(address = 1; address <= 127; address++ ) {
+    error = 0;
+    SPI.beginTransaction(SPISettings(100000, MSBFIRST, SPI_MODE0));
+    digitalWrite(SS, LOW);
+    error = SPI.transfer(address);
+    digitalWrite(SS, HIGH);
+    SPI.endTransaction();
+
+    if (error == 0) {
+      nDevices_spi++;
+      activeItemsSPI.push_back("0X" + String(address, HEX));
+      Serial.print(address, DEC);
+      Serial.println(" (0X" + String(address, HEX) + ")");
+    }
+    Serial.println("Total de dispositivos encontrados: " + String(nDevices_spi));
+  }
+
+  Serial.println("Done.");
 }
