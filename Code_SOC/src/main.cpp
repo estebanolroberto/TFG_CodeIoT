@@ -6,7 +6,7 @@
 #include <ArduinoJson.h>
 #include <Adafruit_HTU21DF.h>
 #include <Adafruit_BMP280.h>
-#include "config.h" 
+#include "config.h"
 #include "MQTT.hpp"
 #include "ESP32_Utils.hpp"
 #include "ESP32_Utils_MQTT_Async.hpp"
@@ -97,9 +97,9 @@ void loop() {
       Serial.print(", Tipo Conexión: ");
       Serial.print(item.type_connection);
       Serial.print(", Address: ");
-      Serial.print(item.data_measure);
-      Serial.print(", Address: ");
       Serial.print(item.direction);
+      Serial.print(", Medida: ");
+      Serial.print(item.data_measure);
       Serial.print(", Description: ");
       Serial.println(item.description);
   }
@@ -118,13 +118,14 @@ void i2c_Scanner() {
     Wire.beginTransmission(address);
     error = Wire.endTransmission();
     if (error == 0) {
-      activeItems.push_back("0x"+String(address));
+      activeItems.push_back("0X"+String(address));
       nDevices++;
-      Serial.println("Address: 0x" + String(address, HEX));
+      Serial.println("0X" + String(address, HEX));
     }
   }
   Serial.println("Total de dispositivos encontrados: " + String(nDevices));
 }
+
 
 
 void handleSensorData() {
@@ -219,10 +220,8 @@ void scanSPI() {
       nDevices_spi++;
       activeItemsSPI.push_back("0X" + String(address, HEX));
       Serial.print(address, DEC);
-      Serial.println(" (0X" + String(address, HEX) + ")");
+      Serial.println("0X" + String(address, HEX) + ")");
     }
     Serial.println("Total de dispositivos encontrados: " + String(nDevices_spi));
   }
-
-  Serial.println("Done.");
 }
