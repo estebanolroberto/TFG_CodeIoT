@@ -6,6 +6,7 @@ var Sensorchema = new Schema({
     type_connection:String,
     direction:String,
     description:String,
+    data_measure:String,
     frequency_data:String,
     min_valueData:String,
     max_valueData:String
