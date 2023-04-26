@@ -8,7 +8,8 @@ var Sensorchema = new Schema({
     data_measure:String,
     frequency_data:String,
     min_valueData:String,
-    max_valueData:String
+    max_valueData:String,
+    interrupt_pin:String
 },
 { collection: 'sensores' });
 
