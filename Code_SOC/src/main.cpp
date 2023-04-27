@@ -103,7 +103,7 @@ void loop() {
       Serial.print(", Medida: ");
       Serial.print(item.data_measure);
       Serial.print(", Description: ");
-      Serial.println(item.description);
+      Serial.print(item.description);
       Serial.print(", Frecuencia: ");
       Serial.println(item.frequency_data);
       frecuencia_data = item.frequency_data;
