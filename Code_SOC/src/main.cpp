@@ -30,6 +30,7 @@ String lastItem,currentItem = "";
 
 std::list<String> activeItems,activeItemsSPI;
 std::list<Item> itemList;
+std::list<Item> commonItems;
 
 void scanSPI();
 void i2c_Scanner();
@@ -108,6 +109,7 @@ void loop() {
   
 }
 
+
 void i2c_Scanner() {
   activeItems.clear();
   byte error, address;
@@ -118,9 +120,11 @@ void i2c_Scanner() {
     Wire.beginTransmission(address);
     error = Wire.endTransmission();
     if (error == 0) {
+      deviceAddress = "0x" + String(address, HEX);
       activeItems.push_back("0X"+String(address));
       nDevices++;
       Serial.println("0X" + String(address, HEX));
+      String url_GET = "http://192.168.0.120:5000/sensores/direction/" + deviceAddress;
     }
   }
   Serial.println("Total de dispositivos encontrados: " + String(nDevices));
@@ -208,20 +212,22 @@ void scanSPI() {
   nDevices_spi = 0;
   Serial.println("Scanning SPI Devices...");
 
+  // Establecer los pines SPI dedicados para el bus SPI
+  SPI.begin(GPIO_NUM_18, GPIO_NUM_19, GPIO_NUM_23, GPIO_NUM_5);
+
   for(address = 1; address <= 127; address++ ) {
     error = 0;
-    SPI.beginTransaction(SPISettings(100000, MSBFIRST, SPI_MODE0));
-    digitalWrite(SS, LOW);
+    digitalWrite(GPIO_NUM_5, LOW);
     error = SPI.transfer(address);
-    digitalWrite(SS, HIGH);
-    SPI.endTransaction();
+    digitalWrite(GPIO_NUM_5, HIGH);
 
     if (error == 0) {
       nDevices_spi++;
       activeItemsSPI.push_back("0X" + String(address, HEX));
-      Serial.print(address, DEC);
-      Serial.println("0X" + String(address, HEX) + ")");
+      //Serial.print(address, DEC);
+      //Serial.println("0X" + String(address, HEX) + ")");
     }
-    Serial.println("Total de dispositivos encontrados: " + String(nDevices_spi));
   }
+  Serial.println("Total de dispositivos i2c encontrados: " + String(nDevices_spi));
+  SPI.end();
 }

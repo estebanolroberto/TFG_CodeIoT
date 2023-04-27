@@ -26,3 +26,4 @@ bool bmp280Detected = false;
 volatile bool interruptFlag = false;
 volatile bool interruptFlag_scanner = false;
 volatile bool interruptFlag_BD = false;
+String deviceAddress;
