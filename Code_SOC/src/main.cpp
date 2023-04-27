@@ -20,6 +20,7 @@ struct Item {
   String direction;
   String description;
   String data_measure;
+  String frequency_data;
 };
        
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
@@ -103,6 +104,9 @@ void loop() {
       Serial.print(item.data_measure);
       Serial.print(", Description: ");
       Serial.println(item.description);
+      Serial.print(", Frecuencia: ");
+      Serial.println(item.frequency_data);
+      frecuencia_data = item.frequency_data;
   }
   itemList.clear();
   }
