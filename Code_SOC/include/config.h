@@ -18,6 +18,7 @@ const char *MQTT_PASSWORD = "1299";
 unsigned long time_presenceI2C= 20000000;
 unsigned long time_scanner= 10000000;
 unsigned long time_scanner_bd= 25000000;
+unsigned long time_scanner_common = 30000000;
 int HTTPCODE_SUCCESS = 200;
 
 
@@ -26,4 +27,5 @@ bool bmp280Detected = false;
 volatile bool interruptFlag = false;
 volatile bool interruptFlag_scanner = false;
 volatile bool interruptFlag_BD = false;
+volatile bool interruptFlag_Common = false;
 String deviceAddress,frecuencia_data;

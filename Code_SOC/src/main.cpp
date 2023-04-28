@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <HTTPClient.h>
 #include <WiFi.h>
+#include <LinkedList.h>
 #include <SPI.h>
 #include <AsyncMqttClient.h>
 #include <ArduinoJson.h>
@@ -29,9 +30,23 @@ HTTPClient http;
 hw_timer_t * timer = NULL;
 String lastItem,currentItem = "";
 
-std::list<String> activeItems,activeItemsSPI;
-std::list<Item> itemList;
-std::list<Item> commonItems;
+std::list<String> activeItemsSPI;
+LinkedList<String> activeItems;
+LinkedList<Item> itemList;
+LinkedList<String> directions;
+
+const int MAX_DEVICES = 20; // número máximo de dispositivos a detectar
+
+void elementosComunes(LinkedList<String> lista1, LinkedList<String> lista2) {
+  for (int i = 0; i < lista1.size(); i++) {
+    for (int j = 0; j < lista2.size(); j++) {
+      if (lista2.get(j) == lista1.get(i)) {
+        Serial.print("ELEMENTO:" + lista2.get(j));
+        break;
+      }
+    }
+  }
+}
 
 void scanSPI();
 void i2c_Scanner();
@@ -49,6 +64,9 @@ void IRAM_ATTR onTimerListBD(){
   interruptFlag_BD =true;
 }
 
+void IRAM_ATTR onTimerCommon(){
+  interruptFlag_Common =true;
+}
 void setup() {
 
   Serial.begin(9600);
@@ -74,6 +92,11 @@ void setup() {
   timerAttachInterrupt(timer, &onTimerListBD, true);
   timerAlarmWrite(timer, time_scanner_bd, true);
   timerAlarmEnable(timer);
+
+  timer = timerBegin(3, 80, true);
+  timerAttachInterrupt(timer, &onTimerCommon, true);
+  timerAlarmWrite(timer, time_scanner_common, true);
+  timerAlarmEnable(timer);
 }
 
 void loop() {
@@ -92,47 +115,44 @@ void loop() {
   if(interruptFlag_BD){
     interruptFlag_BD = false;
      getAllItems();
-     Serial.println("Dispositivos registrados en BD:");
-    for (const auto& item : itemList) {
-      Serial.print("Name: ");
-      Serial.print(item.name);
-      Serial.print(", Tipo Conexión: ");
-      Serial.print(item.type_connection);
-      Serial.print(", Address: ");
-      Serial.print(item.direction);
-      Serial.print(", Medida: ");
-      Serial.print(item.data_measure);
-      Serial.print(", Description: ");
-      Serial.print(item.description);
-      Serial.print(", Frecuencia: ");
-      Serial.println(item.frequency_data);
-      frecuencia_data = item.frequency_data;
-  }
-  itemList.clear();
+    }
+
+  if(interruptFlag_Common){
+    interruptFlag_Common = false;
+    elementosComunes(activeItems, directions);
   }
   
 }
 
 
+
 void i2c_Scanner() {
-  activeItems.clear();
-  byte error, address;
-  int nDevices;
-  nDevices = 0;
+  int nDevices = 0;
+  
+  activeItems.clear(); // se limpia la lista al inicio de la función
+  
   Serial.println("Dispositivos encontrados en el bus I2C:");
-  for (address = 1; address < 127; address++) {
+  for (byte address = 1; address < 127; address++) {
     Wire.beginTransmission(address);
-    error = Wire.endTransmission();
+    byte error = Wire.endTransmission();
     if (error == 0) {
-      deviceAddress = "0x" + String(address, HEX);
-      activeItems.push_back("0X"+String(address));
+      String deviceAddress = "0x" + String(address, HEX);
+      activeItems.add(deviceAddress);
       nDevices++;
-      Serial.println("0X" + String(address, HEX));
-      String url_GET = "http://192.168.0.120:5000/sensores/direction/" + deviceAddress;
     }
+    if (nDevices == MAX_DEVICES) break;
   }
-  Serial.println("Total de dispositivos encontrados: " + String(nDevices));
+  
+  Serial.println("Total de dispositivos I2C encontrados: " + String(nDevices));
+  
+  for (int i = 0; i < activeItems.size(); i++) {
+    Serial.println(activeItems.get(i));
+  }
 }
+
+
+
+
 
 
 
@@ -189,6 +209,7 @@ void handleSensorData() {
   }
 }
 void getAllItems() {
+  directions.clear();
   int httpCode = http.GET();
   String payload = http.getString();
 
@@ -196,6 +217,7 @@ void getAllItems() {
     DynamicJsonDocument doc(1024);
     deserializeJson(doc, payload);
     int size = doc.size();
+    
     for (int i = 0; i < size; i++) {
       JsonObject item = doc[i];
       Item newItem; // Crear un nuevo objeto Item
@@ -203,10 +225,12 @@ void getAllItems() {
       newItem.type_connection = item["type_connection"].as<String>();
       newItem.direction = item["direction"].as<String>();
       newItem.description = item["description"].as<String>();
-      itemList.push_back(newItem); // Agregar el nuevo Item a la lista
+      itemList.add(newItem); // Agregar el nuevo Item a la lista de Items
+      directions.add(newItem.direction); // Agregar la dirección a la lista de Strings
     }
   }
 }
+
 
 void scanSPI() {
   activeItemsSPI.clear();
@@ -232,6 +256,6 @@ void scanSPI() {
       //Serial.println("0X" + String(address, HEX) + ")");
     }
   }
-  Serial.println("Total de dispositivos i2c encontrados: " + String(nDevices_spi));
+  Serial.println("Total de dispositivos SPI encontrados: " + String(nDevices_spi));
   SPI.end();
 }
