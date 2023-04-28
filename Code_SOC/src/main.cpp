@@ -12,41 +12,7 @@
 #include "ESP32_Utils.hpp"
 #include "ESP32_Utils_MQTT_Async.hpp"
 #include <list>
-#define BMP280_ADDRESS (0x76)
-#define HTU21DF_I2CADDR (0x40)
 
-struct Item {
-  String name;
-  String type_connection;
-  String direction;
-  String description;
-  String data_measure;
-  String frequency_data;
-};
-       
-Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
-Adafruit_BMP280 bmp280;
-HTTPClient http;
-hw_timer_t * timer = NULL;
-String lastItem,currentItem = "";
-
-std::list<String> activeItemsSPI;
-LinkedList<String> activeItems;
-LinkedList<Item> itemList;
-LinkedList<String> directions;
-
-const int MAX_DEVICES = 20; // número máximo de dispositivos a detectar
-
-void elementosComunes(LinkedList<String> lista1, LinkedList<String> lista2) {
-  for (int i = 0; i < lista1.size(); i++) {
-    for (int j = 0; j < lista2.size(); j++) {
-      if (lista2.get(j) == lista1.get(i)) {
-        Serial.print("ELEMENTO:" + lista2.get(j));
-        break;
-      }
-    }
-  }
-}
 
 void scanSPI();
 void i2c_Scanner();
@@ -67,6 +33,8 @@ void IRAM_ATTR onTimerListBD(){
 void IRAM_ATTR onTimerCommon(){
   interruptFlag_Common =true;
 }
+
+
 void setup() {
 
   Serial.begin(9600);
@@ -119,21 +87,21 @@ void loop() {
 
   if(interruptFlag_Common){
     interruptFlag_Common = false;
-    Serial.print("Lista 1: ");
+    Serial.print("Lista Dispositivos Conectados: ");
   for (int i = 0; i < activeItems.size(); i++) {
     Serial.print(activeItems.get(i));
     Serial.print(" ");
   }
   Serial.println();
   
-  Serial.print("Lista 2: ");
+  Serial.print("Lista Dispositivos registrados: ");
   for (int i = 0; i < directions.size(); i++) {
     Serial.print(directions.get(i));
     Serial.print(" ");
   }
   Serial.println();
   
-  Serial.println("Elementos en común: ");
+  Serial.println("Datos de los conectados de BD: ");
   for (int i = 0; i < activeItems.size(); i++) {
     String cadena = activeItems.get(i);
     for (int j = 0; j < directions.size(); j++) {
@@ -275,7 +243,7 @@ void scanSPI() {
 
     if (error == 0) {
       nDevices_spi++;
-      activeItemsSPI.push_back("0X" + String(address, HEX));
+      activeItemsSPI.add("0X" + String(address, HEX));
       //Serial.print(address, DEC);
       //Serial.println("0X" + String(address, HEX) + ")");
     }

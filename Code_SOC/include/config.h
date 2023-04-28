@@ -29,3 +29,26 @@ volatile bool interruptFlag_scanner = false;
 volatile bool interruptFlag_BD = false;
 volatile bool interruptFlag_Common = false;
 String deviceAddress,frecuencia_data;
+
+#define BMP280_ADDRESS (0x76)
+#define HTU21DF_I2CADDR (0x40)
+
+struct Item {
+  String name;
+  String type_connection;
+  String direction;
+  String description;
+  String data_measure;
+  String frequency_data;
+};
+       
+Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
+Adafruit_BMP280 bmp280;
+HTTPClient http;
+hw_timer_t * timer = NULL;
+String lastItem,currentItem = "";
+
+LinkedList<String> activeItemsSPI,activeItems,directions;
+LinkedList<Item> itemList;
+
+const int MAX_DEVICES = 20; 
