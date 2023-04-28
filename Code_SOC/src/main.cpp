@@ -119,7 +119,31 @@ void loop() {
 
   if(interruptFlag_Common){
     interruptFlag_Common = false;
-    elementosComunes(activeItems, directions);
+    Serial.print("Lista 1: ");
+  for (int i = 0; i < activeItems.size(); i++) {
+    Serial.print(activeItems.get(i));
+    Serial.print(" ");
+  }
+  Serial.println();
+  
+  Serial.print("Lista 2: ");
+  for (int i = 0; i < directions.size(); i++) {
+    Serial.print(directions.get(i));
+    Serial.print(" ");
+  }
+  Serial.println();
+  
+  Serial.println("Elementos en común: ");
+  for (int i = 0; i < activeItems.size(); i++) {
+    String cadena = activeItems.get(i);
+    for (int j = 0; j < directions.size(); j++) {
+      if (cadena.equals(directions.get(j))) {
+        Serial.print(cadena);
+        Serial.print(" ");
+        break;
+      }
+    }
+  }
   }
   
 }
@@ -136,7 +160,7 @@ void i2c_Scanner() {
     Wire.beginTransmission(address);
     byte error = Wire.endTransmission();
     if (error == 0) {
-      String deviceAddress = "0x" + String(address, HEX);
+      String deviceAddress = "0X" + String(address, HEX);
       activeItems.add(deviceAddress);
       nDevices++;
     }
