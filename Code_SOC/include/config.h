@@ -28,6 +28,14 @@ unsigned long time_scanner_common = 30000000;
 int HTTPCODE_SUCCESS = 200;
 const int MAX_DEVICES = 20; 
 
+struct Item {
+  String name;
+  String type_connection;
+  String direction;
+  String description;
+  String data_measure;
+  String frequency_data;
+};
 
 bool htu21dDetected = false;
 bool bmp280Detected = false;
@@ -37,15 +45,6 @@ volatile bool interruptFlag_BD = false;
 volatile bool interruptFlag_Common = false;
 String deviceAddress,frecuencia_data;
 String lastItem,currentItem = "";
-LinkedList<String> activeItemsSPI,activeItems,directions;
+LinkedList<String> activeItemsSPI,activeItems,directions,soc_contains;
 LinkedList<Item> itemList;
 
-
-struct Item {
-  String name;
-  String type_connection;
-  String direction;
-  String description;
-  String data_measure;
-  String frequency_data;
-};

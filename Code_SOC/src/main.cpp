@@ -12,7 +12,8 @@
 #include "ESP32_Utils.hpp"
 #include "ESP32_Utils_MQTT_Async.hpp"
 #include <list>
-
+const char* apiUrl = "http://192.168.0.120:5000/sensores/direction/";
+void commonElements();
 void scanSPI();
 void i2c_Scanner();
 void handleSensorData();
@@ -93,6 +94,52 @@ void loop()
   if (interruptFlag_Common)
   {
     interruptFlag_Common = false;
+    commonElements();
+  }
+}
+void printElementsAPI(){
+  if(WiFi.status() == WL_CONNECTED){
+    HTTPClient http_api;
+
+    for (int i=0; i<soc_contains.size();i++){
+      char path[128];
+      strcpy(path, apiUrl);
+      strcat(path, soc_contains.get(i).c_str());
+
+      http.begin(path);
+      Serial.println(path);
+      int httpCode = http.GET();
+
+      if (httpCode > 0) {
+        String payload = http.getString();
+        Serial.println("Respuesta de la API REST:");
+        Serial.println(payload);
+
+        // Analizar el objeto JSON
+        DynamicJsonDocument doc(1024);
+        DeserializationError error = deserializeJson(doc, payload);
+
+        // Verificar si hubo algún error al analizar el JSON
+        if (error) {
+          Serial.print("Error al analizar el JSON: ");
+          Serial.println(error.c_str());
+        } else {
+          // Serializar el objeto JSON para imprimirlo
+          String output;
+          serializeJson(doc, output);
+          //Serial.println("Objeto JSON:");
+          //Serial.println(output);
+        }
+      } else {
+        Serial.println("Error en la solicitud GET");
+      }
+
+      http.end();
+    }
+  }
+    }
+void commonElements(){
+   soc_contains.clear();
     Serial.print("Lista Dispositivos Conectados: ");
     for (int i = 0; i < activeItems.size(); i++)
     {
@@ -117,15 +164,15 @@ void loop()
       {
         if (cadena.equals(directions.get(j)))
         {
+          soc_contains.add(cadena);
           Serial.print(cadena);
           Serial.print(" ");
           break;
         }
       }
     }
-  }
+    printElementsAPI();
 }
-
 void i2c_Scanner()
 {
   int nDevices = 0;
