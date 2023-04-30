@@ -12,7 +12,9 @@
 #include "ESP32_Utils.hpp"
 #include "ESP32_Utils_MQTT_Async.hpp"
 #include <list>
-const char* apiUrl = "http://192.168.0.120:5000/sensores/direction/";
+
+LinkedList<String> directions;
+
 void commonElements();
 void scanSPI();
 void i2c_Scanner();
@@ -97,11 +99,15 @@ void loop()
     commonElements();
   }
 }
-void printElementsAPI(){
-  if(WiFi.status() == WL_CONNECTED){
+void printElementsAPI()
+{
+  frecuencyList.clear();
+  if (WiFi.status() == WL_CONNECTED)
+  {
     HTTPClient http_api;
 
-    for (int i=0; i<soc_contains.size();i++){
+    for (int i = 0; i < soc_contains.size(); i++)
+    {
       char path[128];
       strcpy(path, apiUrl);
       strcat(path, soc_contains.get(i).c_str());
@@ -110,68 +116,77 @@ void printElementsAPI(){
       Serial.println(path);
       int httpCode = http.GET();
 
-      if (httpCode > 0) {
+      if (httpCode > 0)
+      {
         String payload = http.getString();
         Serial.println("Respuesta de la API REST:");
         Serial.println(payload);
 
-        // Analizar el objeto JSON
         DynamicJsonDocument doc(1024);
         DeserializationError error = deserializeJson(doc, payload);
-
-        // Verificar si hubo algún error al analizar el JSON
-        if (error) {
-          Serial.print("Error al analizar el JSON: ");
-          Serial.println(error.c_str());
-        } else {
-          // Serializar el objeto JSON para imprimirlo
-          String output;
-          serializeJson(doc, output);
-          //Serial.println("Objeto JSON:");
-          //Serial.println(output);
+        int size = doc.size();
+        for (int i = 0; i < size; i++)
+        {
+          JsonObject item = doc[i];
+          Item newItem_freq;
+          newItem_freq.frequency_data = item["frequency_data"].as<String>();
+          frecuencyList.add(newItem_freq.frequency_data);
         }
-      } else {
+        Serial.print("Lista Frecuencias: ");
+        for (int i = 0; i < frecuencyList.size(); i++)
+        {
+          Serial.print(frecuencyList.get(i));
+          Serial.print(" ");
+        }
+      }
+      else
+      {
         Serial.println("Error en la solicitud GET");
       }
 
       http.end();
     }
   }
-    }
-void commonElements(){
-   soc_contains.clear();
-    Serial.print("Lista Dispositivos Conectados: ");
-    for (int i = 0; i < activeItems.size(); i++)
-    {
-      Serial.print(activeItems.get(i));
-      Serial.print(" ");
-    }
-    Serial.println();
 
-    Serial.print("Lista Dispositivos registrados: ");
-    for (int i = 0; i < directions.size(); i++)
-    {
-      Serial.print(directions.get(i));
-      Serial.print(" ");
-    }
-    Serial.println();
+}
 
-    Serial.println("Datos de los conectados de BD: ");
-    for (int i = 0; i < activeItems.size(); i++)
+
+void commonElements()
+{
+  
+  Serial.print("Lista Dispositivos Conectados: ");
+  for (int i = 0; i < activeItems.size(); i++)
+  {
+    Serial.print(activeItems.get(i));
+    Serial.print(" ");
+  }
+  Serial.println();
+
+  Serial.print("Lista Dispositivos registrados: ");
+  for (int i = 0; i < directions.size(); i++)
+  {
+    Serial.print(directions.get(i));
+    Serial.print(" ");
+  }
+  Serial.println();
+
+  Serial.println("Datos de los conectados de BD: ");
+  soc_contains.clear();
+  for (int i = 0; i < activeItems.size(); i++)
+  {
+    String cadena = activeItems.get(i);
+    for (int j = 0; j < directions.size(); j++)
     {
-      String cadena = activeItems.get(i);
-      for (int j = 0; j < directions.size(); j++)
+      if (cadena.equals(directions.get(j)))
       {
-        if (cadena.equals(directions.get(j)))
-        {
-          soc_contains.add(cadena);
-          Serial.print(cadena);
-          Serial.print(" ");
-          break;
-        }
+        soc_contains.add(cadena);
+        Serial.print(cadena);
+        Serial.print(" ");
+        break;
       }
     }
-    printElementsAPI();
+  }
+  printElementsAPI();
 }
 void i2c_Scanner()
 {
@@ -260,7 +275,7 @@ void handleSensorData()
 }
 void getAllItems()
 {
-  directions.clear();
+  //directions.clear();
   int httpCode = http.GET();
   String payload = http.getString();
 
@@ -269,17 +284,16 @@ void getAllItems()
     DynamicJsonDocument doc(1024);
     deserializeJson(doc, payload);
     int size = doc.size();
-
     for (int i = 0; i < size; i++)
     {
       JsonObject item = doc[i];
-      Item newItem; // Crear un nuevo objeto Item
+      Item newItem;
       newItem.name = item["name"].as<String>();
       newItem.type_connection = item["type_connection"].as<String>();
       newItem.direction = item["direction"].as<String>();
       newItem.description = item["description"].as<String>();
-      itemList.add(newItem);             // Agregar el nuevo Item a la lista de Items
-      directions.add(newItem.direction); // Agregar la dirección a la lista de Strings
+      itemList.add(newItem);
+      directions.add(newItem.direction);
     }
   }
 }
@@ -293,7 +307,6 @@ void scanSPI()
   nDevices_spi = 0;
   Serial.println("Scanning SPI Devices...");
 
-  // Establecer los pines SPI dedicados para el bus SPI
   SPI.begin(GPIO_NUM_18, GPIO_NUM_19, GPIO_NUM_23, GPIO_NUM_5);
 
   for (address = 1; address <= 127; address++)
@@ -307,8 +320,6 @@ void scanSPI()
     {
       nDevices_spi++;
       activeItemsSPI.add("0X" + String(address, HEX));
-      // Serial.print(address, DEC);
-      // Serial.println("0X" + String(address, HEX) + ")");
     }
   }
   Serial.println("Total de dispositivos SPI encontrados: " + String(nDevices_spi));

@@ -8,6 +8,7 @@ const char* ssid     = "VodafoneMobileWiFi-984998";
 const char* password = "2009693581";
 const char *hostname = "ESP32_CASA";
 const char* url = "http://192.168.0.120:5000/sensores";
+const char* apiUrl = "http://192.168.0.120:5000/sensores/direction/";
 const char *HTU_MQTT_TOPIC = "sensorHTU";
 const char *BMP_MQTT_TOPIC = "sensorBMP";   
 
@@ -26,6 +27,7 @@ unsigned long time_scanner= 10000000;
 unsigned long time_scanner_bd= 25000000;
 unsigned long time_scanner_common = 30000000;
 int HTTPCODE_SUCCESS = 200;
+int maxFrequency = 0;
 const int MAX_DEVICES = 20; 
 
 struct Item {
@@ -45,6 +47,6 @@ volatile bool interruptFlag_BD = false;
 volatile bool interruptFlag_Common = false;
 String deviceAddress,frecuencia_data;
 String lastItem,currentItem = "";
-LinkedList<String> activeItemsSPI,activeItems,directions,soc_contains;
+LinkedList<String> activeItemsSPI,activeItems,soc_contains,frecuencyList;
 LinkedList<Item> itemList;
 
