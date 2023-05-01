@@ -50,6 +50,7 @@ void setup()
   InitMqtt();
   ConnectWiFi_STA();
   http.begin(url);
+  pinMode(SS, OUTPUT); 
 
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimer, true);
@@ -300,28 +301,34 @@ void getAllItems()
 
 void scanSPI()
 {
-  activeItemsSPI.clear();
-  byte i;
-  byte error, address;
-  int nDevices_spi;
-  nDevices_spi = 0;
-  Serial.println("Scanning SPI Devices...");
-
-  SPI.begin(GPIO_NUM_18, GPIO_NUM_19, GPIO_NUM_23, GPIO_NUM_5);
-
-  for (address = 1; address <= 127; address++)
-  {
-    error = 0;
-    digitalWrite(GPIO_NUM_5, LOW);
-    error = SPI.transfer(address);
-    digitalWrite(GPIO_NUM_5, HIGH);
-
-    if (error == 0)
-    {
-      nDevices_spi++;
-      activeItemsSPI.add("0X" + String(address, HEX));
+  byte deviceCount = 0;
+  byte disconnectedCount = 0; 
+   Serial.println("Buscando Dispositivos  en el bus SPI:");
+  for (byte i = 0; i <= 0x7F; i++) {
+    SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0)); 
+    digitalWrite(SS, LOW); 
+    byte status = SPI.transfer(i); 
+    digitalWrite(SS, HIGH); 
+    SPI.endTransaction(); // Finalizar la transacción SPI
+    if (status != 0xFF) { // Si el dispositivo responde
+      //Serial.print("Dispositivo encontrado en la dirección 0x");
+      if (i < 16) {
+        //Serial.print("0");
+      }
+      //Serial.println(i, HEX);
+      deviceCount++;
+    } else { // Si el dispositivo no responde
+      disconnectedCount++;
     }
   }
-  Serial.println("Total de dispositivos SPI encontrados: " + String(nDevices_spi));
-  SPI.end();
+  if (deviceCount == 0) { 
+    Serial.println("No se encontraron dispositivos conectados por SPI");
+  } else { 
+    Serial.print(deviceCount);
+    Serial.println(" dispositivos conectados por SPI.");
+    if (disconnectedCount > 0) {
+      Serial.print(disconnectedCount);
+      Serial.println(" dispositivos desconectados.");
+    }
+  }
 }
