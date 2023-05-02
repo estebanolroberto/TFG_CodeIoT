@@ -32,11 +32,18 @@ const int MAX_DEVICES = 20;
 
 struct Item {
   String name;
+  String type_device;
   String type_connection;
   String direction;
   String description;
   String data_measure;
   String frequency_data;
+  String min_valueData;
+  String max_valueData;
+  String units;
+  String manufacturer;
+  String deploymentDate;
+  String interrupt_pin;
 };
 
 bool htu21dDetected = false;
