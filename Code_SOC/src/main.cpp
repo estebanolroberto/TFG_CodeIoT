@@ -97,9 +97,13 @@ void loop()
   if (interruptFlag_Common)
   {
     interruptFlag_Common = false;
-    commonElements();
+    //commonElements();
   }
 }
+
+
+
+
 void printElementsAPI()
 {
   frecuencyList.clear();
@@ -107,11 +111,11 @@ void printElementsAPI()
   {
     HTTPClient http_api;
 
-    for (int i = 0; i < soc_contains.size(); i++)
+    for (int i = 0; i < activeItems.size(); i++)
     {
       char path[128];
       strcpy(path, apiUrl);
-      strcat(path, soc_contains.get(i).c_str());
+      strcat(path, activeItems.get(i).c_str());
 
       http.begin(path);
       Serial.println(path);
@@ -216,6 +220,7 @@ void i2c_Scanner()
   {
     Serial.println(activeItems.get(i));
   }
+  printElementsAPI();
 }
 
 void handleSensorData()
