@@ -2,6 +2,8 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
 var Sensorchema = new Schema({
+    name:String,
+    type_device:String,
     type_connection:String,
     direction:String,
     description:String,
@@ -9,6 +11,9 @@ var Sensorchema = new Schema({
     frequency_data:String,
     min_valueData:String,
     max_valueData:String,
+    units: String,
+    manufacturer:String,
+    deploymentDate:String,
     interrupt_pin:String
 },
 { collection: 'sensores' });

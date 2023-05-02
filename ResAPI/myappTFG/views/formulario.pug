@@ -9,6 +9,10 @@ html
       input(type="text", id="name", name="name")
       br
 
+      label(for="type_device") Tipo de elemeneto: 
+      input(type="text",id="type_device", name="type_device")
+      br
+
       label(for="type_connection") Tipo de conexión:
       select(id="type_connection", name="type_connection")
         option(value="I2C") I2C
@@ -36,6 +40,16 @@ html
       br
       label(for="max_valueData") Max Value:
       input(type="text", id="max_valueData", name="max_valueData")
+      br
+      label(for="units") Unidad:
+      input(type="text", id="units", name="units")
+      br
+      label(for="manufacturer") Manufacturer:
+      input(type="text", id="manufacturer", name="manufacturer")
+      br
+      
+      label(for="deploymentDate") Deployment Date:
+      input(type="text", id="deploymentDate", name="deploymentDate")
       br
 
       <label for="interrupt_pin">Interrupt Pin:</label>
