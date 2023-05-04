@@ -7,8 +7,8 @@ hw_timer_t * timer = NULL;
 const char* ssid     = "VodafoneMobileWiFi-984998";
 const char* password = "2009693581";
 const char *hostname = "ESP32_CASA";
-const char* url = "http://192.168.0.120:5000/sensores";
-const char* apiUrl = "http://192.168.0.120:5000/sensores/direction/";
+const char* url = "http://192.168.0.121:5000/sensores";
+const char* apiUrl = "http://192.168.0.121:5000/sensores/direction/";
 const char *HTU_MQTT_TOPIC = "sensorHTU";
 const char *BMP_MQTT_TOPIC = "sensorBMP";   
 

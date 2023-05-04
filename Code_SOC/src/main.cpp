@@ -14,8 +14,7 @@
 #include <list>
 
 LinkedList<String> directions;
-
-void commonElements();
+void printElementsAPI();
 void scanSPI();
 void i2c_Scanner();
 void handleSensorData();
@@ -97,7 +96,7 @@ void loop()
   if (interruptFlag_Common)
   {
     interruptFlag_Common = false;
-    //commonElements();
+    printElementsAPI();
   }
 }
 
@@ -155,44 +154,6 @@ void printElementsAPI()
 
 }
 
-
-void commonElements()
-{
-  
-  Serial.print("Lista Dispositivos Conectados: ");
-  for (int i = 0; i < activeItems.size(); i++)
-  {
-    Serial.print(activeItems.get(i));
-    Serial.print(" ");
-  }
-  Serial.println();
-
-  Serial.print("Lista Dispositivos registrados: ");
-  for (int i = 0; i < directions.size(); i++)
-  {
-    Serial.print(directions.get(i));
-    Serial.print(" ");
-  }
-  Serial.println();
-
-  Serial.println("Datos de los conectados de BD: ");
-  soc_contains.clear();
-  for (int i = 0; i < activeItems.size(); i++)
-  {
-    String cadena = activeItems.get(i);
-    for (int j = 0; j < directions.size(); j++)
-    {
-      if (cadena.equals(directions.get(j)))
-      {
-        soc_contains.add(cadena);
-        Serial.print(cadena);
-        Serial.print(" ");
-        break;
-      }
-    }
-  }
-  printElementsAPI();
-}
 void i2c_Scanner()
 {
   int nDevices = 0;
@@ -220,7 +181,6 @@ void i2c_Scanner()
   {
     Serial.println(activeItems.get(i));
   }
-  printElementsAPI();
 }
 
 void handleSensorData()
@@ -235,7 +195,7 @@ void handleSensorData()
   Wire.beginTransmission(BMP280_ADDRESS);
   if (Wire.endTransmission() == 0)
   {
-    bmp280.begin();
+    bmp280.begin(0x76);
     Serial.println("Se detectó el sensor BMP280.");
     Serial.print("Temperatura: ");
     Serial.print(bmp280.readTemperature());
