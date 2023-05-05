@@ -27,6 +27,8 @@ unsigned long time_presenceI2C= 20000000; //microsegundos   0,05hz
 unsigned long time_scanner= 10000000;
 unsigned long time_scanner_bd= 25000000;
 unsigned long time_scanner_common = 30000000;
+unsigned long frecuenciaActual = 30000000;
+
 int HTTPCODE_SUCCESS = 200;
 int maxFrequency = 0;
 const int MAX_DEVICES = 20; 
