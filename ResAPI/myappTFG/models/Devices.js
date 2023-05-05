@@ -1,22 +1,24 @@
 var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
-var Sensorchema = new Schema({
+var Deviceschema = new Schema({
     name:String,
     type_device:String,
     type_connection:String,
     direction:String,
     description:String,
     data_measure:String,
-    frequency_data:String,
+    frequency_data:Number,
     min_valueData:String,
     max_valueData:String,
     units: String,
     manufacturer:String,
     deploymentDate:String,
-    interrupt_pin:String
+    interrupt_pin:String,
+    max_frecuency:Number,
+    min_frecuency:Number
 },
-{ collection: 'sensores' });
+{ collection: 'devices' });
 
 // el ObjectId está implicito
-module.exports = mongoose.model('sensores', Sensorchema);
+module.exports = mongoose.model('devices', Deviceschema);

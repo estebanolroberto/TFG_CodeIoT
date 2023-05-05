@@ -4,7 +4,7 @@ html
     title Formulario para recoger datos del sensor
   body
     h1 Formulario para recoger datos del sensor
-    form(action="/sensores", method="POST")
+    form(action="/devices", method="POST")
       label(for="name") Nombre:
       input(type="text", id="name", name="name")
       br
@@ -32,9 +32,18 @@ html
       textarea(type="text", id="data_measure", name="data_measure")
       br
 
+      label(for="max_frecuency") Max Frequency:
+      input(type="text", id="max_frecuency", name="max_frecuency")
+      br
+
+      label(for="min_frecuency") Min Frequency:
+      input(type="text", id="min_frecuency", name="min_frecuency")
+      br
+
       label(for="frequency_data") Frequency:
       input(type="text", id="frequency_data", name="frequency_data")
       br
+      
       label(for="min_valueData") Min Value:
       input(type="text", id="min_valueData", name="min_valueData")
       br

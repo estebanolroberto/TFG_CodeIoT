@@ -1,7 +1,7 @@
 var express = require("express");
 var mongoose = require('mongoose');
 var router = express.Router();
-var sensores = require('../models/Sensores.js');
+var sensores = require('../models/Devices.js');
 var db = mongoose.connection;
 
 /* GET home page. */
