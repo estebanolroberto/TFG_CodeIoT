@@ -2,8 +2,8 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
 var DevicesConnectedchema = new Schema({
-    direction:String,
-    time: String
+    direction: { type: Schema.ObjectId, ref: 'Devices' },
+    addeddate: { type: Date, default: Date.now }
 },
 { collection: 'devices_connected' });
 
