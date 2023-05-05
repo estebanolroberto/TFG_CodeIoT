@@ -1,4 +1,4 @@
-#define BMP280_ADDRESS (0x76)
+#define BMP280_ADDRESS (0x77)
 #define HTU21DF_I2CADDR (0x40)       
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
 Adafruit_BMP280 bmp280;
@@ -22,7 +22,7 @@ const char *MQTT_USER = "roberto";
 const char *MQTT_PASSWORD = "1299";
 
 
-unsigned long time_presenceI2C= 20000000;
+unsigned long time_presenceI2C= 20000000; //microsegundos   0,05hz
 unsigned long time_scanner= 10000000;
 unsigned long time_scanner_bd= 25000000;
 unsigned long time_scanner_common = 30000000;

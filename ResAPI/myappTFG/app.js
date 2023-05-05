@@ -19,6 +19,7 @@ var sensorBMP280 = require('./routes/sensorBMP');
 var devices = require('./routes/device');
 var app = express();
 
+
 // view engine setup
 //app.listen(3000, '192.168.0.120')
 app.set('views', path.join(__dirname, 'views'));
