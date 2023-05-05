@@ -3,6 +3,7 @@ var Schema = mongoose.Schema;
 
 var DevicesConnectedchema = new Schema({
     direction: { type: Schema.ObjectId, ref: 'Devices' },
+    actual_frecuency: String,
     addeddate: { type: Date, default: Date.now }
 },
 { collection: 'devices_connected' });
