@@ -51,9 +51,11 @@ def on_message(client, user, msg):
         # Convertir el mensaje de MQTT a un objeto JSON con el campo de presencia
         message_json = json.loads(msg.payload)
         direction = message_json["direction"]
+        frecuenciaActual = message_json["actual_frecuency"]
         # Preparar el objeto JSON con los datos del sensor PIR
         data = {
             "direction": direction,
+            "actual_frecuency": frecuenciaActual
             }
 
     # Generar la URL de la API REST local en función del tema MQTT y la colección correspondiente
