@@ -156,6 +156,9 @@ void printElementsAPI()
 
 void i2c_Scanner()
 {
+  
+  StaticJsonDocument<200> devices_connected;
+  String String_devices_connected;
   int nDevices = 0;
 
   activeItems.clear();
@@ -169,6 +172,9 @@ void i2c_Scanner()
     {
       String deviceAddress = "0X" + String(address, HEX);
       activeItems.add(deviceAddress);
+      devices_connected["direction"] = deviceAddress;
+      serializeJson(devices_connected, String_devices_connected);
+      PublishMqtt(String_devices_connected.c_str(), DEVICES_MQTT_TOPIC);
       nDevices++;
     }
     if (nDevices == MAX_DEVICES)
