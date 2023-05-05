@@ -10,6 +10,7 @@ def on_connect(client, user, flags, rc):
     print("Connect with result code: " + str(rc))
     client.subscribe("sensorHTU")
     client.subscribe("sensorBMP")
+    client.subscribe("devices_connected")
 
 # método para recibir mensajes
 def on_message(client, user, msg):
@@ -44,6 +45,16 @@ def on_message(client, user, msg):
             "pressure": pressure_bmp,
             "altitude": altitude_bmp,
             }
+        
+    elif msg.topic == "devices_connected":
+        collection_name = "devices_connected"
+        # Convertir el mensaje de MQTT a un objeto JSON con el campo de presencia
+        message_json = json.loads(msg.payload)
+        direction = message_json["direction"]
+        # Preparar el objeto JSON con los datos del sensor PIR
+        data = {
+            "direction": direction,
+            }
 
     # Generar la URL de la API REST local en función del tema MQTT y la colección correspondiente
     api_url = API_BASE_URL + collection_name
@@ -64,6 +75,6 @@ client.on_message = on_message
 
 # conexión al broker
 client.username_pw_set("roberto", "1299")
-client.connect("192.168.0.120", 1883, 60)
+client.connect("192.168.0.121", 1883, 60)
 
 client.loop_forever()
