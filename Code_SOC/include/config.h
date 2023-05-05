@@ -10,7 +10,8 @@ const char *hostname = "ESP32_CASA";
 const char* url = "http://192.168.0.121:5000/sensores";
 const char* apiUrl = "http://192.168.0.121:5000/sensores/direction/";
 const char *HTU_MQTT_TOPIC = "sensorHTU";
-const char *BMP_MQTT_TOPIC = "sensorBMP";   
+const char *BMP_MQTT_TOPIC = "sensorBMP";
+const char *DEVICES_MQTT_TOPIC ="devices_connected";   
 
 IPAddress ip(192, 168, 1, 200);
 IPAddress gateway(192, 168, 1, 1);
