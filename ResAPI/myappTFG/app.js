@@ -17,6 +17,7 @@ var usersRouter = require('./routes/users');
 var sensorTempRouter = require('./routes/sensorHTU');
 var sensorBMP280 = require('./routes/sensorBMP');
 var devices = require('./routes/device');
+var devices_connected = require('./routes/deviceConnected');
 var app = express();
 
 
@@ -39,6 +40,7 @@ app.use('/users', usersRouter);
 app.use('/sensorHTU', sensorTempRouter);
 app.use('/sensorBMP', sensorBMP280);
 app.use('/devices', devices);
+app.use('/connected',devices_connected);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
