@@ -14,30 +14,32 @@
 #include <list>
 
 LinkedList<String> directions;
+void frecuenciasActualizada(LinkedList<String> frecuencyList);
 void printElementsAPI();
 void scanSPI();
 void i2c_Scanner();
 void handleSensorData();
 void getAllItems();
 
-void IRAM_ATTR onTimer()
+void IRAM_ATTR onTimerDataDevices()
 {
   interruptFlag = true;
 }
-void IRAM_ATTR onTimerScanner()
+void IRAM_ATTR onTimerScannerDevices()
 {
   interruptFlag_scanner = true;
 }
 
-void IRAM_ATTR onTimerListBD()
+void IRAM_ATTR onTimerListBDDevices()
 {
   interruptFlag_BD = true;
 }
 
-void IRAM_ATTR onTimerCommon()
+void IRAM_ATTR onTimerGetInformationAPI()
 {
-  interruptFlag_Common = true;
+  interruptFlagGetInformationAPI = true;
 }
+
 
 void setup()
 {
@@ -50,25 +52,25 @@ void setup()
   ConnectWiFi_STA();
   http.begin(url);
   pinMode(SS, OUTPUT); 
-
+  //frecuenciasActualizada();
   timer = timerBegin(0, 80, true);
-  timerAttachInterrupt(timer, &onTimer, true);
-  timerAlarmWrite(timer, time_presenceI2C, true);
+  timerAttachInterrupt(timer, &onTimerDataDevices, true);
+  timerAlarmWrite(timer, timeCollectData, true);
   timerAlarmEnable(timer);
 
   timer = timerBegin(1, 80, true);
-  timerAttachInterrupt(timer, &onTimerScanner, true);
-  timerAlarmWrite(timer, time_scanner, true);
+  timerAttachInterrupt(timer, &onTimerScannerDevices, true);
+  timerAlarmWrite(timer, time_scanner_Devices, true);
   timerAlarmEnable(timer);
 
   timer = timerBegin(2, 80, true);
-  timerAttachInterrupt(timer, &onTimerListBD, true);
+  timerAttachInterrupt(timer, &onTimerListBDDevices, true);
   timerAlarmWrite(timer, time_scanner_bd, true);
   timerAlarmEnable(timer);
 
   timer = timerBegin(3, 80, true);
-  timerAttachInterrupt(timer, &onTimerCommon, true);
-  timerAlarmWrite(timer, time_scanner_common, true);
+  timerAttachInterrupt(timer, &onTimerGetInformationAPI, true);
+  timerAlarmWrite(timer, timePrintInformation, true);
   timerAlarmEnable(timer);
 }
 
@@ -93,13 +95,40 @@ void loop()
     getAllItems();
   }
 
-  if (interruptFlag_Common)
+  if (interruptFlagGetInformationAPI)
   {
-    interruptFlag_Common = false;
+    interruptFlagGetInformationAPI = false;
     printElementsAPI();
+    //frecuenciasActualizada(frecuencyList);
   }
+
 }
 
+
+String getMaxElement(LinkedList<String> freqList)
+{
+  double maxElement = 0.0;
+  String maxElementString;
+  for (int i = 0; i < freqList.size(); i++) {
+    String elementString = freqList.get(i);
+    double element = elementString.toDouble();
+    if (element > maxElement) {
+      maxElement = element;
+      maxElementString = elementString;
+    }
+  }
+  return maxElementString;
+}
+
+void frecuenciasActualizada(LinkedList<String> frecuencyList){
+        maxFreq = getMaxElement(frecuencyList);
+        Serial.println("Frecuencia mas alta");
+        Serial.println(maxFreq);
+        float floatValue = maxFreq.toFloat(); 
+        long frecuenciaActual_New = static_cast<int>(1 / floatValue * 1000000); 
+        Serial.println("Frecuencia Actual en microsegundos");
+        Serial.println(frecuenciaActual_New);
+}
 
 
 
@@ -136,12 +165,6 @@ void printElementsAPI()
           newItem_freq.frequency_data = item["frequency_data"].as<String>();
           frecuencyList.add(newItem_freq.frequency_data);
         }
-        Serial.print("Lista Frecuencias: ");
-        for (int i = 0; i < frecuencyList.size(); i++)
-        {
-          Serial.print(frecuencyList.get(i));
-          Serial.print(" ");
-        }
       }
       else
       {
@@ -156,10 +179,10 @@ void printElementsAPI()
 
 void i2c_Scanner()
 {
-  
   StaticJsonDocument<200> devices_connected;
   String String_devices_connected;
   int nDevices = 0;
+  std::vector<String> deviceAddresses;  // vector para almacenar las direcciones de los dispositivos encontrados
 
   activeItems.clear();
 
@@ -172,16 +195,26 @@ void i2c_Scanner()
     {
       String deviceAddress = "0X" + String(address, HEX);
       activeItems.add(deviceAddress);
-      devices_connected["direction"] = deviceAddress;
-      devices_connected["actual_frecuency"] =frecuenciaActual;
-      serializeJson(devices_connected, String_devices_connected);
-      PublishMqtt(String_devices_connected.c_str(), DEVICES_MQTT_TOPIC);
+      deviceAddresses.push_back(deviceAddress);  // agregar la dirección a la lista de direcciones
       nDevices++;
     }
     if (nDevices == MAX_DEVICES)
       break;
   }
+  
+  String devicesStr = "";
+  for (int i = 0; i < deviceAddresses.size(); i++) {
+    devicesStr += deviceAddresses[i];
+    if (i < deviceAddresses.size() - 1) {
+      devicesStr += ", ";
+    }
+  }
 
+  devices_connected["direction"] = devicesStr;  // agregar la cadena de direcciones al objeto JSON
+  devices_connected["actual_frecuency"] =frecuenciaActual;
+  serializeJson(devices_connected, String_devices_connected);
+
+  PublishMqtt(String_devices_connected.c_str(), DEVICES_MQTT_TOPIC);
   Serial.println("Total de dispositivos I2C encontrados: " + String(nDevices));
 
   for (int i = 0; i < activeItems.size(); i++)
@@ -189,6 +222,7 @@ void i2c_Scanner()
     Serial.println(activeItems.get(i));
   }
 }
+
 
 void handleSensorData()
 {
@@ -289,7 +323,7 @@ void scanSPI()
       }
       //Serial.println(i, HEX);
       deviceCount++;
-    } else { // Si el dispositivo no responde
+    } else { 
       disconnectedCount++;
     }
   }

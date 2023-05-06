@@ -7,26 +7,26 @@ hw_timer_t * timer = NULL;
 const char* ssid     = "VodafoneMobileWiFi-984998";
 const char* password = "2009693581";
 const char *hostname = "ESP32_CASA";
-const char* url = "http://192.168.0.121:5000/sensores";
-const char* apiUrl = "http://192.168.0.121:5000/sensores/direction/";
+const char* url = "http://192.168.0.121:5000/devices";
+const char* apiUrl = "http://192.168.0.121:5000/devices/direction/";
 const char *HTU_MQTT_TOPIC = "sensorHTU";
 const char *BMP_MQTT_TOPIC = "sensorBMP";
 const char *DEVICES_MQTT_TOPIC ="devices_connected";   
 
-IPAddress ip(192, 168, 1, 200);
-IPAddress gateway(192, 168, 1, 1);
+IPAddress ip(192, 168, 0, 222);
+IPAddress gateway(192, 168, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
 
-const IPAddress MQTT_HOST(192, 168, 0, 120); //ip del broker
+const IPAddress MQTT_HOST(192, 168, 0, 121); //ip del broker
 const int MQTT_PORT = 1883;
 const char *MQTT_USER = "roberto";
 const char *MQTT_PASSWORD = "1299";
 
 
-unsigned long time_presenceI2C= 20000000; //microsegundos   0,05hz
-unsigned long time_scanner= 10000000;
-unsigned long time_scanner_bd= 25000000;
-unsigned long time_scanner_common = 30000000;
+unsigned long timeCollectData= 65000000; //microsegundos   0,05hz
+unsigned long time_scanner_Devices= 60000000;
+unsigned long time_scanner_bd= 33000000;
+unsigned long timePrintInformation = 72000000;
 unsigned long frecuenciaActual = 30000000;
 
 int HTTPCODE_SUCCESS = 200;
@@ -54,8 +54,10 @@ bool bmp280Detected = false;
 volatile bool interruptFlag = false;
 volatile bool interruptFlag_scanner = false;
 volatile bool interruptFlag_BD = false;
-volatile bool interruptFlag_Common = false;
+volatile bool interruptFlagGetInformationAPI = false;
+volatile bool interruptFlag_ChangeFrecuency = false;
 String deviceAddress,frecuencia_data;
+String maxFreq;
 String lastItem,currentItem = "";
 LinkedList<String> activeItemsSPI,activeItems,soc_contains,frecuencyList;
 LinkedList<Item> itemList;

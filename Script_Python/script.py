@@ -3,7 +3,7 @@ import requests
 import json
 
 # URL base de la API REST local
-API_BASE_URL = "http://localhost:5000/"
+API_BASE_URL = "http://192.168.0.121:5000/"
 
 # método para conectar
 def on_connect(client, user, flags, rc):
@@ -21,42 +21,54 @@ def on_message(client, user, msg):
     if msg.topic == "sensorHTU":
         collection_name = "sensorHTU"
         # Convertir el mensaje de MQTT a un objeto JSON con los campos de temperatura y humedad
-        message_json = json.loads(msg.payload)
-        temperature = message_json["temperature"]
-        humidity = message_json["humidity"]
-        # Preparar el objeto JSON con los datos del sensor HTU
-        data = {
-            "sensor_type": "HTU",
-            "temperature": temperature,
-            "humidity": humidity
+        try:
+            message_json = json.loads(msg.payload)
+            temperature = message_json["temperature"]
+            humidity = message_json["humidity"]
+            # Preparar el objeto JSON con los datos del sensor HTU
+            data = {
+                "sensor_type": "HTU",
+                "temperature": temperature,
+                "humidity": humidity
             }
+        except json.decoder.JSONDecodeError:
+            print("Invalid JSON payload received from topic " + msg.topic)
+            return
         
     elif msg.topic == "sensorBMP":
         collection_name = "sensorBMP"
-        # Convertir el mensaje de MQTT a un objeto JSON con el campo de presencia
-        message_json = json.loads(msg.payload)
-        temperature_bmp = message_json["temperature"]
-        pressure_bmp = message_json["pressure"]
-        altitude_bmp = message_json["altitude"]
-        # Preparar el objeto JSON con los datos del sensor PIR
-        data = {
-            "sensor_type": "BMP",
-            "temperature": temperature_bmp,
-            "pressure": pressure_bmp,
-            "altitude": altitude_bmp,
+        # Convertir el mensaje de MQTT a un objeto JSON con los campos de temperatura, presión y altitud
+        try:
+            message_json = json.loads(msg.payload)
+            temperature_bmp = message_json["temperature"]
+            pressure_bmp = message_json["pressure"]
+            altitude_bmp = message_json["altitude"]
+            # Preparar el objeto JSON con los datos del sensor BMP
+            data = {
+                "sensor_type": "BMP",
+                "temperature": temperature_bmp,
+                "pressure": pressure_bmp,
+                "altitude": altitude_bmp
             }
+        except json.decoder.JSONDecodeError:
+            print("Invalid JSON payload received from topic " + msg.topic)
+            return
         
     elif msg.topic == "devices_connected":
         collection_name = "devices_connected"
-        # Convertir el mensaje de MQTT a un objeto JSON con el campo de presencia
-        message_json = json.loads(msg.payload)
-        direction = message_json["direction"]
-        frecuenciaActual = message_json["actual_frecuency"]
-        # Preparar el objeto JSON con los datos del sensor PIR
-        data = {
-            "direction": direction,
-            "actual_frecuency": frecuenciaActual
+        # Convertir el mensaje de MQTT a un objeto JSON con los campos de dirección y frecuencia
+        try:
+            message_json = json.loads(msg.payload)
+            direction = message_json["direction"]
+            frecuenciaActual = message_json["actual_frecuency"]
+            # Preparar el objeto JSON con los datos de los dispositivos conectados
+            data = {
+                "direction": direction,
+                "actual_frecuency": frecuenciaActual
             }
+        except json.decoder.JSONDecodeError:
+            print("Invalid JSON payload received from topic " + msg.topic)
+            return
 
     # Generar la URL de la API REST local en función del tema MQTT y la colección correspondiente
     api_url = API_BASE_URL + collection_name
@@ -70,12 +82,11 @@ def on_message(client, user, msg):
     else:
         print("Error in POST request")
 
-# crear objeto y callbacks
+
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
-# conexión al broker
 client.username_pw_set("roberto", "1299")
 client.connect("192.168.0.121", 1883, 60)
 
