@@ -105,7 +105,7 @@ void loop()
 
 void frecuenciasActualizada()
 {
-  
+
   for (int i = 0; i < frecuencyList.size(); i++)
   {
     String elementString = frecuencyList.get(i);
@@ -119,7 +119,7 @@ void frecuenciasActualizada()
   Serial.println("Frecuencia mas alta");
   Serial.println(maxElementString);
   float floatValue = maxElementString.toFloat();
-  long frecuenciaActual_New = static_cast<int>(1 / floatValue * 1000000);
+  frecuenciaActual_New = static_cast<int>(1 / floatValue * 1000000);
   Serial.println("Frecuencia Actual en microsegundos");
   Serial.println(frecuenciaActual_New);
 }
@@ -170,8 +170,6 @@ void printElementsAPI()
 
 void i2c_Scanner()
 {
-  StaticJsonDocument<200> devices_connected;
-  String String_devices_connected;
   int nDevices = 0;
   std::vector<String> deviceAddresses; // vector para almacenar las direcciones de los dispositivos encontrados
 
@@ -186,7 +184,16 @@ void i2c_Scanner()
     {
       String deviceAddress = "0X" + String(address, HEX);
       activeItems.add(deviceAddress);
-      deviceAddresses.push_back(deviceAddress); // agregar la dirección a la lista de direcciones
+      deviceAddresses.push_back(deviceAddress);
+
+      StaticJsonDocument<200> device_connected;
+      device_connected["direction"] = deviceAddress;
+      device_connected["actual_frecuency"] = frecuenciaActual_New;
+
+      String String_devices_connected;
+      serializeJson(device_connected, String_devices_connected);
+      PublishMqtt(String_devices_connected.c_str(), DEVICES_MQTT_TOPIC);
+
       nDevices++;
     }
     if (nDevices == MAX_DEVICES)
@@ -203,11 +210,6 @@ void i2c_Scanner()
     }
   }
 
-  devices_connected["direction"] = devicesStr; // agregar la cadena de direcciones al objeto JSON
-  devices_connected["actual_frecuency"] = frecuenciaActual;
-  serializeJson(devices_connected, String_devices_connected);
-
-  PublishMqtt(String_devices_connected.c_str(), DEVICES_MQTT_TOPIC);
   Serial.println("Total de dispositivos I2C encontrados: " + String(nDevices));
 
   for (int i = 0; i < activeItems.size(); i++)
@@ -215,6 +217,7 @@ void i2c_Scanner()
     Serial.println(activeItems.get(i));
   }
 }
+
 
 void handleSensorData()
 {

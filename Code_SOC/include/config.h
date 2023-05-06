@@ -28,6 +28,7 @@ unsigned long time_scanner_Devices= 60000000;
 unsigned long time_scanner_bd= 33000000;
 unsigned long timePrintInformation = 72000000;
 unsigned long frecuenciaActual = 30000000;
+long frecuenciaActual_New;
 
 int HTTPCODE_SUCCESS = 200;
 int maxFrequency = 0;
