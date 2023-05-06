@@ -14,7 +14,7 @@
 #include <list>
 
 LinkedList<String> directions;
-void frecuenciasActualizada(LinkedList<String> frecuencyList);
+void frecuenciasActualizada();
 void printElementsAPI();
 void scanSPI();
 void i2c_Scanner();
@@ -40,7 +40,6 @@ void IRAM_ATTR onTimerGetInformationAPI()
   interruptFlagGetInformationAPI = true;
 }
 
-
 void setup()
 {
 
@@ -51,8 +50,8 @@ void setup()
   InitMqtt();
   ConnectWiFi_STA();
   http.begin(url);
-  pinMode(SS, OUTPUT); 
-  //frecuenciasActualizada();
+  pinMode(SS, OUTPUT);
+  // frecuenciasActualizada();
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimerDataDevices, true);
   timerAlarmWrite(timer, timeCollectData, true);
@@ -99,38 +98,31 @@ void loop()
   {
     interruptFlagGetInformationAPI = false;
     printElementsAPI();
-    //frecuenciasActualizada(frecuencyList);
+    frecuenciasActualizada();
   }
-
 }
 
 
-String getMaxElement(LinkedList<String> freqList)
+void frecuenciasActualizada()
 {
-  double maxElement = 0.0;
-  String maxElementString;
-  for (int i = 0; i < freqList.size(); i++) {
-    String elementString = freqList.get(i);
+  
+  for (int i = 0; i < frecuencyList.size(); i++)
+  {
+    String elementString = frecuencyList.get(i);
     double element = elementString.toDouble();
-    if (element > maxElement) {
+    if (element > maxElement)
+    {
       maxElement = element;
       maxElementString = elementString;
     }
   }
-  return maxElementString;
+  Serial.println("Frecuencia mas alta");
+  Serial.println(maxElementString);
+  float floatValue = maxElementString.toFloat();
+  long frecuenciaActual_New = static_cast<int>(1 / floatValue * 1000000);
+  Serial.println("Frecuencia Actual en microsegundos");
+  Serial.println(frecuenciaActual_New);
 }
-
-void frecuenciasActualizada(LinkedList<String> frecuencyList){
-        maxFreq = getMaxElement(frecuencyList);
-        Serial.println("Frecuencia mas alta");
-        Serial.println(maxFreq);
-        float floatValue = maxFreq.toFloat(); 
-        long frecuenciaActual_New = static_cast<int>(1 / floatValue * 1000000); 
-        Serial.println("Frecuencia Actual en microsegundos");
-        Serial.println(frecuenciaActual_New);
-}
-
-
 
 void printElementsAPI()
 {
@@ -174,7 +166,6 @@ void printElementsAPI()
       http.end();
     }
   }
-
 }
 
 void i2c_Scanner()
@@ -182,7 +173,7 @@ void i2c_Scanner()
   StaticJsonDocument<200> devices_connected;
   String String_devices_connected;
   int nDevices = 0;
-  std::vector<String> deviceAddresses;  // vector para almacenar las direcciones de los dispositivos encontrados
+  std::vector<String> deviceAddresses; // vector para almacenar las direcciones de los dispositivos encontrados
 
   activeItems.clear();
 
@@ -195,23 +186,25 @@ void i2c_Scanner()
     {
       String deviceAddress = "0X" + String(address, HEX);
       activeItems.add(deviceAddress);
-      deviceAddresses.push_back(deviceAddress);  // agregar la dirección a la lista de direcciones
+      deviceAddresses.push_back(deviceAddress); // agregar la dirección a la lista de direcciones
       nDevices++;
     }
     if (nDevices == MAX_DEVICES)
       break;
   }
-  
+
   String devicesStr = "";
-  for (int i = 0; i < deviceAddresses.size(); i++) {
+  for (int i = 0; i < deviceAddresses.size(); i++)
+  {
     devicesStr += deviceAddresses[i];
-    if (i < deviceAddresses.size() - 1) {
+    if (i < deviceAddresses.size() - 1)
+    {
       devicesStr += ", ";
     }
   }
 
-  devices_connected["direction"] = devicesStr;  // agregar la cadena de direcciones al objeto JSON
-  devices_connected["actual_frecuency"] =frecuenciaActual;
+  devices_connected["direction"] = devicesStr; // agregar la cadena de direcciones al objeto JSON
+  devices_connected["actual_frecuency"] = frecuenciaActual;
   serializeJson(devices_connected, String_devices_connected);
 
   PublishMqtt(String_devices_connected.c_str(), DEVICES_MQTT_TOPIC);
@@ -222,7 +215,6 @@ void i2c_Scanner()
     Serial.println(activeItems.get(i));
   }
 }
-
 
 void handleSensorData()
 {
@@ -282,7 +274,7 @@ void handleSensorData()
 }
 void getAllItems()
 {
-  //directions.clear();
+  // directions.clear();
   int httpCode = http.GET();
   String payload = http.getString();
 
@@ -308,31 +300,40 @@ void getAllItems()
 void scanSPI()
 {
   byte deviceCount = 0;
-  byte disconnectedCount = 0; 
-   Serial.println("Buscando Dispositivos  en el bus SPI:");
-  for (byte i = 0; i <= 0x7F; i++) {
-    SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0)); 
-    digitalWrite(SS, LOW); 
-    byte status = SPI.transfer(i); 
-    digitalWrite(SS, HIGH); 
+  byte disconnectedCount = 0;
+  Serial.println("Buscando Dispositivos  en el bus SPI:");
+  for (byte i = 0; i <= 0x7F; i++)
+  {
+    SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
+    digitalWrite(SS, LOW);
+    byte status = SPI.transfer(i);
+    digitalWrite(SS, HIGH);
     SPI.endTransaction(); // Finalizar la transacción SPI
-    if (status != 0xFF) { // Si el dispositivo responde
-      //Serial.print("Dispositivo encontrado en la dirección 0x");
-      if (i < 16) {
-        //Serial.print("0");
+    if (status != 0xFF)
+    { // Si el dispositivo responde
+      // Serial.print("Dispositivo encontrado en la dirección 0x");
+      if (i < 16)
+      {
+        // Serial.print("0");
       }
-      //Serial.println(i, HEX);
+      // Serial.println(i, HEX);
       deviceCount++;
-    } else { 
+    }
+    else
+    {
       disconnectedCount++;
     }
   }
-  if (deviceCount == 0) { 
+  if (deviceCount == 0)
+  {
     Serial.println("No se encontraron dispositivos conectados por SPI");
-  } else { 
+  }
+  else
+  {
     Serial.print(deviceCount);
     Serial.println(" dispositivos conectados por SPI.");
-    if (disconnectedCount > 0) {
+    if (disconnectedCount > 0)
+    {
       Serial.print(disconnectedCount);
       Serial.println(" dispositivos desconectados.");
     }
