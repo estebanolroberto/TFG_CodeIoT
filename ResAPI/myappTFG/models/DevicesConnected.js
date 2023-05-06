@@ -2,7 +2,7 @@ var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
 var DevicesConnectedchema = new Schema({
-    direction: { type: Schema.ObjectId, ref: 'Devices' },
+    direction: String,
     actual_frecuency: String,
     addeddate: { type: Date, default: Date.now }
 },

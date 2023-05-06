@@ -40,7 +40,7 @@ app.use('/users', usersRouter);
 app.use('/sensorHTU', sensorTempRouter);
 app.use('/sensorBMP', sensorBMP280);
 app.use('/devices', devices);
-app.use('/connected',devices_connected);
+app.use('/devices_connected',devices_connected);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
