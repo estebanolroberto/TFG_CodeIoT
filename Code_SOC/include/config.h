@@ -3,7 +3,10 @@
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
 Adafruit_BMP280 bmp280;
 HTTPClient http;
-hw_timer_t * timer = NULL;
+hw_timer_t * timer1 =  NULL;
+hw_timer_t * timer =  NULL;
+hw_timer_t * timer3 =  NULL;
+hw_timer_t * timer2 =  NULL;
 const char* ssid     = "VodafoneMobileWiFi-984998";
 const char* password = "2009693581";
 const char *hostname = "ESP32_CASA";

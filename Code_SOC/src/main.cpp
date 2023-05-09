@@ -51,26 +51,26 @@ void setup()
   ConnectWiFi_STA();
   http.begin(url);
   pinMode(SS, OUTPUT);
-  // frecuenciasActualizada();
+
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimerDataDevices, true);
   timerAlarmWrite(timer, timeCollectData, true);
   timerAlarmEnable(timer);
 
-  timer = timerBegin(1, 80, true);
-  timerAttachInterrupt(timer, &onTimerScannerDevices, true);
-  timerAlarmWrite(timer, time_scanner_Devices, true);
-  timerAlarmEnable(timer);
+  timer1 = timerBegin(1, 80, true);
+  timerAttachInterrupt(timer1, &onTimerScannerDevices, true);
+  timerAlarmWrite(timer1, time_scanner_Devices, true);
+  timerAlarmEnable(timer1);
 
-  timer = timerBegin(2, 80, true);
-  timerAttachInterrupt(timer, &onTimerListBDDevices, true);
-  timerAlarmWrite(timer, time_scanner_bd, true);
-  timerAlarmEnable(timer);
+  timer2 = timerBegin(2, 80, true);
+  timerAttachInterrupt(timer2, &onTimerListBDDevices, true);
+  timerAlarmWrite(timer2, time_scanner_bd, true);
+  timerAlarmEnable(timer2);
 
-  timer = timerBegin(3, 80, true);
-  timerAttachInterrupt(timer, &onTimerGetInformationAPI, true);
-  timerAlarmWrite(timer, timePrintInformation, true);
-  timerAlarmEnable(timer);
+  timer3 = timerBegin(3, 80, true);
+  timerAttachInterrupt(timer3, &onTimerGetInformationAPI, true);
+  timerAlarmWrite(timer3, timePrintInformation, true);
+  timerAlarmEnable(timer3);
 }
 
 void loop()
@@ -99,6 +99,7 @@ void loop()
     interruptFlagGetInformationAPI = false;
     printElementsAPI();
     frecuenciasActualizada();
+    timerAlarmWrite(timer, frecuenciaActual_New, true);
   }
 }
 
