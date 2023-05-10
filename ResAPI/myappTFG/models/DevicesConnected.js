@@ -1,12 +1,12 @@
 var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
-var DevicesConnectedchema = new Schema({
-    direction: String,
-    actual_frecuency: String,
-    addeddate: { type: Date, default: Date.now }
+var DevicesConnectedSchema = new Schema({
+  direction: String,
+  actual_frequency: String,
+  addeddate: { type: Date, default: Date.now },
+  device: { type: Schema.Types.ObjectId, ref: 'devices' }
 },
 { collection: 'devices_connected' });
 
-// el ObjectId está implicito
-module.exports = mongoose.model('devices_connected', DevicesConnectedchema);
+module.exports = mongoose.model('devices_connected', DevicesConnectedSchema);
