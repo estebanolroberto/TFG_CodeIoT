@@ -3,7 +3,7 @@ import requests
 import json
 
 # URL base de la API REST local
-API_BASE_URL = "http://192.168.0.121:5000/"
+API_BASE_URL = "http://192.168.0.123:5000/"
 
 # método para conectar
 def on_connect(client, user, flags, rc):
@@ -88,6 +88,6 @@ client.on_connect = on_connect
 client.on_message = on_message
 
 client.username_pw_set("roberto", "1299")
-client.connect("192.168.0.121", 1883, 60)
+client.connect("192.168.0.123", 1883, 60)
 
 client.loop_forever()

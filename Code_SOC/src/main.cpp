@@ -12,8 +12,14 @@
 #include "ESP32_Utils.hpp"
 #include "ESP32_Utils_MQTT_Async.hpp"
 #include <list>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <LinkedList.h>
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 LinkedList<String> directions;
+void mostrarDatoEnRecuadro(int posX, int posY, const String& dato);
 void frecuenciasActualizada();
 void printElementsAPI();
 void scanSPI();
@@ -51,6 +57,10 @@ void setup()
   ConnectWiFi_STA();
   http.begin(url);
   pinMode(SS, OUTPUT);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+  display.setTextSize(1); // Establecer el tamaño de fuente predeterminado
+  display.setTextColor(WHITE);
 
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimerDataDevices, true);
@@ -86,6 +96,27 @@ void loop()
     interruptFlag_scanner = false;
     i2c_Scanner();
     scanSPI();
+    display.clearDisplay(); // Limpiar la pantalla en cada iteración
+
+    int cantidadDatos = activeItems.size();
+
+    // Mostrar los datos en los recuadros
+    for (int i = 0; i < 6; i++) {
+      int posX = (i % 3) * (SCREEN_WIDTH / 3); // Calcular la posición X del recuadro
+      int posY = (i / 3) * (SCREEN_HEIGHT / 2); // Calcular la posición Y del recuadro
+
+      if (i < cantidadDatos) {
+        String dato = activeItems.get(i);
+        mostrarDatoEnRecuadro(posX, posY, dato);
+      } else {
+        // Dibujar un recuadro vacío
+        int recuadroAncho = SCREEN_WIDTH / 3;
+        int recuadroAlto = SCREEN_HEIGHT / 2;
+        display.drawRect(posX, posY, recuadroAncho, recuadroAlto, WHITE);
+      }
+    }
+
+    display.display(); // Mostrar en la pantalla
   }
 
   if (interruptFlag_BD)
@@ -167,6 +198,24 @@ void printElementsAPI()
       http.end();
     }
   }
+}
+
+void mostrarDatoEnRecuadro(int posX, int posY, const String& dato) {
+  int recuadroAncho = SCREEN_WIDTH / 3;
+  int recuadroAlto = SCREEN_HEIGHT / 2;
+
+  // Dibujar el recuadro
+  display.drawRect(posX, posY, recuadroAncho, recuadroAlto, WHITE);
+
+  // Calcular la posición para imprimir el dato en el centro del recuadro
+  int textPosX = posX + (recuadroAncho / 2) - (dato.length() * 3); // Ajustar la posición horizontal
+  int textPosY = posY + (recuadroAlto / 2) - 8; // Ajustar la posición vertical
+
+  // Imprimir el dato en el centro del recuadro
+  display.setTextColor(WHITE);
+  display.setTextSize(1);
+  display.setCursor(textPosX, textPosY);
+  display.print(dato);
 }
 
 void i2c_Scanner()
