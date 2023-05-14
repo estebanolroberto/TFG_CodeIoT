@@ -281,43 +281,74 @@ void handleSensorData()
   Wire.beginTransmission(BMP280_ADDRESS);
   if (Wire.endTransmission() == 0)
   {
+    float temperature = bmp280.readTemperature();
+    float pressure = bmp280.readPressure();
+    float altitud = bmp280.readAltitude();
     bmp280.begin(0x76);
+    display.clearDisplay();
+    display.setCursor(0, 0);
+    display.println("Sensor BMP280");
+    display.print("Temperatura: ");
+    display.print(temperature);
+    display.println(" *C");
+    display.print("Presion: ");
+    display.print(pressure * 0.01);
+    display.println("mbar");
+    display.print("Altitud: ");
+    display.print(altitud);
+    display.println(" m");
     Serial.println("Se detectó el sensor BMP280.");
     Serial.print("Temperatura: ");
-    Serial.print(bmp280.readTemperature());
-    sensor_bmp["temperature"] = bmp280.readTemperature();
+    Serial.print(temperature);
+    sensor_bmp["temperature"] = temperature;
     Serial.println(" *C");
     Serial.print("Presión: ");
-    Serial.print(bmp280.readPressure() * 0.01);
-    sensor_bmp["pressure"] = bmp280.readPressure();
+    Serial.print(pressure * 0.01);
+    sensor_bmp["pressure"] = pressure;
     Serial.println(" mbar");
     Serial.print("Altitud: ");
-    Serial.print(bmp280.readAltitude());
-    sensor_bmp["altitude"] = bmp280.readAltitude();
+    Serial.print(altitud);
+    sensor_bmp["altitude"] =altitud;
     Serial.println(" m");
     Serial.println();
     serializeJson(sensor_bmp, String_sensor_bmp);
     PublishMqtt(String_sensor_bmp.c_str(), BMP_MQTT_TOPIC);
     bmp280Detected = true;
+    display.display();
+    delay(2500);
   }
 
   Wire.beginTransmission(HTU21DF_I2CADDR);
   if (Wire.endTransmission() == 0)
   {
+    float temperature = htu21d.readTemperature();
+    float humidity = htu21d.readHumidity();
+
     htu21d.begin();
+    display.clearDisplay();
+    display.setCursor(0, 0);
+    display.println("Sensor HTU21D");
+    display.print("Temperatura: ");
+    display.print(temperature);
+    display.println(" *C");
+    display.print("Humidity: ");
+    display.print(humidity);
+    display.println(" %");
     Serial.println("Se detectó el sensor HTU21D.");
     Serial.print("Humedad: ");
-    Serial.print(htu21d.readHumidity());
-    sensor_htu["humidity"] = htu21d.readHumidity();
+    Serial.print(humidity);
+    sensor_htu["humidity"] = humidity;
     Serial.println(" %");
     Serial.print("Temperatura: ");
-    Serial.print(htu21d.readTemperature());
-    sensor_htu["temperature"] = htu21d.readTemperature();
+    Serial.print(temperature);
+    sensor_htu["temperature"] = temperature;
     Serial.println(" *C");
     Serial.println();
     serializeJson(sensor_htu, String_sensor_htu);
     PublishMqtt(String_sensor_htu.c_str(), HTU_MQTT_TOPIC);
     htu21dDetected = true;
+    display.display();
+    delay(2500);
   }
 
   if (!htu21dDetected && !bmp280Detected && currentMillis > 2000)
