@@ -67,7 +67,7 @@ String maxFreq;
 String lastItem,currentItem = "";
 LinkedList<String> activeItemsSPI,activeItems,soc_contains,frecuencyList;
 LinkedList<Item> itemList;
-
+LinkedList<String> directions;
 double maxElement = 0.0;
 String maxElementString;
 
