@@ -38,7 +38,7 @@ void i2c_Scanner()
 
   activeItems.clear();
 
-  Serial.println("Dispositivos encontrados en el bus I2C:");
+  Serial.println("I2C Devices Founded on the I2C Bus:");
   for (byte address = 1; address < 127; address++)
   {
     Wire.beginTransmission(address);
@@ -73,7 +73,7 @@ void i2c_Scanner()
     }
   }
 
-  Serial.println("Total de dispositivos I2C encontrados: " + String(nDevices));
+  Serial.println("I2C Devices Connected: " + String(nDevices));
 
   for (int i = 0; i < activeItems.size(); i++)
   {
@@ -89,7 +89,7 @@ void scanSPI()
 {
   byte deviceCount = 0;
   byte disconnectedCount = 0;
-  Serial.println("Buscando Dispositivos  en el bus SPI:");
+  Serial.println("Searching on the SPI Bus:");
   for (byte i = 0; i <= 0x7F; i++)
   {
     SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
@@ -113,16 +113,16 @@ void scanSPI()
   }
   if (deviceCount == 0)
   {
-    Serial.println("No se encontraron dispositivos conectados por SPI");
+    Serial.println("Any SPI devices connected");
   }
   else
   {
     Serial.print(deviceCount);
-    Serial.println(" dispositivos conectados por SPI.");
+    Serial.println(" devices connected by SPI.");
     if (disconnectedCount > 0)
     {
       Serial.print(disconnectedCount);
-      Serial.println(" dispositivos desconectados.");
+      Serial.println(" devices disconnected.");
     }
   }
 }
@@ -151,7 +151,7 @@ void printElementsAPI()
       if (httpCode > 0)
       {
         String payload = http.getString();
-        Serial.println("Respuesta de la API REST:");
+        Serial.println("Response API REST:");
         Serial.println(payload);
 
         DynamicJsonDocument doc(1024);
@@ -167,7 +167,7 @@ void printElementsAPI()
       }
       else
       {
-        Serial.println("Error en la solicitud GET");
+        Serial.println("Error in the GET request");
       }
 
       http.end();
@@ -176,10 +176,10 @@ void printElementsAPI()
 }
 
 /*
-* The `frecuenciasActualizada()` function is iterating through each item in the `frecuencyList` and finding the highest frequency value. It then converts the highest frequency value to a float and calculates the corresponding frequency in microseconds. 
+* The `updateFrecuency()` function is iterating through each item in the `frecuencyList` and finding the highest frequency value. It then converts the highest frequency value to a float and calculates the corresponding frequency in microseconds. 
 * Finally, it prints the highest frequency value and the corresponding frequency in microseconds to the serial monitor.
 */
-void frecuenciasActualizada()
+void updateFrecuency()
 {
 
   for (int i = 0; i < frecuencyList.size(); i++)
@@ -192,10 +192,10 @@ void frecuenciasActualizada()
       maxElementString = elementString;
     }
   }
-  Serial.println("Frecuencia mas alta");
+  Serial.println("Higher Frecuency :");
   Serial.println(maxElementString);
   float floatValue = maxElementString.toFloat();
   frecuenciaActual_New = static_cast<int>(1 / floatValue * 1000000);
-  Serial.println("Frecuencia Actual en microsegundos");
+  Serial.println("Higher Frecuency in microseconds :");
   Serial.println(frecuenciaActual_New);
 }

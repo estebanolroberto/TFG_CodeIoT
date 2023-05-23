@@ -17,9 +17,9 @@
 #include <Adafruit_SSD1306.h>
 #include <LinkedList.h>
 #include "functions.h"
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
-void mostrarDatoEnRecuadro(int posX, int posY, const String &dato);
+Adafruit_SSD1306 *pDisplay = new Adafruit_SSD1306 (SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+void displayDataInBox(int posX, int posY, const String &dato,Adafruit_SSD1306 *pDisplay);
 void handleSensorData();
 
 /**
@@ -58,10 +58,10 @@ void setup()
   ConnectWiFi_STA();
   http.begin(url);
   pinMode(SS, OUTPUT);
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  display.clearDisplay();
-  display.setTextSize(1); 
-  display.setTextColor(WHITE);
+  pDisplay->begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  pDisplay->clearDisplay();
+  pDisplay->setTextSize(1); 
+  pDisplay->setTextColor(WHITE);
 
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimerDataDevices, true);
@@ -102,28 +102,28 @@ void loop()
     interruptFlag_scanner = false;
     i2c_Scanner();
     scanSPI();
-    display.clearDisplay(); 
+    pDisplay->clearDisplay(); 
 
-    int cantidadDatos = activeItems.size();
+    int amountData = activeItems.size();
     for (int i = 0; i < 6; i++)
     {
       int posX = (i % 3) * (SCREEN_WIDTH / 3);  
       int posY = (i / 3) * (SCREEN_HEIGHT / 2); 
 
-      if (i < cantidadDatos)
+      if (i < amountData)
       {
-        String dato = activeItems.get(i);
-        mostrarDatoEnRecuadro(posX, posY, dato);
+        String data = activeItems.get(i);
+        displayDataInBox(posX, posY, data,pDisplay);
       }
       else
       {
-        int recuadroAncho = SCREEN_WIDTH / 3;
-        int recuadroAlto = SCREEN_HEIGHT / 2;
-        display.drawRect(posX, posY, recuadroAncho, recuadroAlto, WHITE);
+        int boxWidth = SCREEN_WIDTH / 3;
+        int boxHigh = SCREEN_HEIGHT / 2;
+        pDisplay->drawRect(posX, posY, boxWidth, boxHigh, WHITE);
       }
     }
 
-    display.display(); 
+    pDisplay->display(); 
   }
 
   if (interruptFlag_BD)
@@ -136,7 +136,7 @@ void loop()
   {
     interruptFlagGetInformationAPI = false;
     printElementsAPI();
-    frecuenciasActualizada();
+    updateFrecuency();
     timerAlarmWrite(timer, frecuenciaActual_New, true);
   }
 }
@@ -151,17 +151,17 @@ void loop()
  * @param dato A constant reference to a String variable that contains the data to be displayed inside
  * the rectangle.
  */
-void mostrarDatoEnRecuadro(int posX, int posY, const String &dato)
+void displayDataInBox(int posX, int posY, const String &data, Adafruit_SSD1306 *display)
 {
-  int recuadroAncho = SCREEN_WIDTH / 3;
-  int recuadroAlto = SCREEN_HEIGHT / 2;
-  display.drawRect(posX, posY, recuadroAncho, recuadroAlto, WHITE);
-  int textPosX = posX + (recuadroAncho / 2) - (dato.length() * 3); 
-  int textPosY = posY + (recuadroAlto / 2) - 8;                
-  display.setTextColor(WHITE);
-  display.setTextSize(1);
-  display.setCursor(textPosX, textPosY);
-  display.print(dato);
+  int boxWidth = SCREEN_WIDTH / 3;
+  int boxHigh = SCREEN_HEIGHT / 2;
+  display->drawRect(posX, posY, boxWidth, boxHigh, WHITE);
+  int textPosX = posX + (boxWidth / 2) - (data.length() * 3); 
+  int textPosY = posY + (boxHigh / 2) - 8;                
+  display->setTextColor(WHITE);
+  display->setTextSize(1);
+  display->setCursor(textPosX, textPosY);
+  display->print(data);
 }
 
 /**
@@ -184,19 +184,20 @@ void handleSensorData()
     float pressure = bmp280.readPressure();
     float altitud = bmp280.readAltitude();
     bmp280.begin(0x76);
-    display.clearDisplay();
-    display.setCursor(0, 0);
-    display.println("Sensor BMP280");
-    display.print("Temperature: ");
-    display.print(temperature);
-    display.println(" *C");
-    display.print("Pressure: ");
-    display.print(pressure * 0.01);
-    display.println("mbar");
-    display.print("Altitude: ");
-    display.print(altitud);
-    display.println(" m");
-    Serial.println("Se detectó el sensor BMP280.");
+    pDisplay->clearDisplay();
+    pDisplay->setCursor(0, 0);
+    pDisplay->println("Sensor BMP280");
+    pDisplay->println("Address: 0x76");
+    pDisplay->print("Temperature: ");
+    pDisplay->print(temperature);
+    pDisplay->println(" *C");
+    pDisplay->print("Pressure: ");
+    pDisplay->print(pressure * 0.01);
+    pDisplay->println("mbar");
+    pDisplay->print("Altitude: ");
+    pDisplay->print(altitud);
+    pDisplay->println(" m");
+    Serial.println("Detected sensor BMP280.");
     Serial.print("Temperature: ");
     Serial.print(temperature);
     sensor_bmp["temperature"] = temperature;
@@ -213,7 +214,7 @@ void handleSensorData()
     serializeJson(sensor_bmp, String_sensor_bmp);
     PublishMqtt(String_sensor_bmp.c_str(), BMP_MQTT_TOPIC);
     bmp280Detected = true;
-    display.display();
+    pDisplay->display();
     delay(2500);
   }
 
@@ -224,16 +225,17 @@ void handleSensorData()
     float humidity = htu21d.readHumidity();
 
     htu21d.begin();
-    display.clearDisplay();
-    display.setCursor(0, 0);
-    display.println("Sensor HTU21D");
-    display.print("Temperature: ");
-    display.print(temperature);
-    display.println(" *C");
-    display.print("Humidity: ");
-    display.print(humidity);
-    display.println(" %");
-    Serial.println("Se detectó el sensor HTU21D.");
+    pDisplay->clearDisplay();
+    pDisplay->setCursor(0, 0);
+    pDisplay->println("Sensor HTU21D");
+    pDisplay->println("Address: 0x40");
+    pDisplay->print("Temperature: ");
+    pDisplay->print(temperature);
+    pDisplay->println(" *C");
+    pDisplay->print("Humidity: ");
+    pDisplay->print(humidity);
+    pDisplay->println(" %");
+    Serial.println("Detected sensor HTU21D.");
     Serial.print("Humidity: ");
     Serial.print(humidity);
     sensor_htu["humidity"] = humidity;
@@ -246,12 +248,30 @@ void handleSensorData()
     serializeJson(sensor_htu, String_sensor_htu);
     PublishMqtt(String_sensor_htu.c_str(), HTU_MQTT_TOPIC);
     htu21dDetected = true;
-    display.display();
+    pDisplay->display();
     delay(2500);
   }
 
-  if (!htu21dDetected && !bmp280Detected && currentMillis > 2000)
+  Wire.beginTransmission(0X3C);
+  if (Wire.endTransmission() == 0)
   {
-    Serial.println("No se detectó ningún sensor.");
+    htu21d.begin();
+    pDisplay->clearDisplay();
+    pDisplay->setCursor(0, 0);
+    pDisplay->println("Actuator");
+    pDisplay->println("Address: 0x3C");
+    pDisplay->print("Screen OLED ");
+    screenDetected = true;
+    pDisplay->display();
+    delay(2500);
+  }
+
+  if (!htu21dDetected && !bmp280Detected && !screenDetected && currentMillis > 2000)
+  {
+    Serial.println("Any sensor detected.");
+    pDisplay->clearDisplay();
+    pDisplay->setCursor(0, 0);
+    pDisplay->println("Any sensor detected.");
+    pDisplay->display();
   }
 }

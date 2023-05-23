@@ -57,6 +57,7 @@ struct Item {
 
 bool htu21dDetected = false;
 bool bmp280Detected = false;
+bool screenDetected = false;
 volatile bool interruptFlag = false;
 volatile bool interruptFlag_scanner = false;
 volatile bool interruptFlag_BD = false;
