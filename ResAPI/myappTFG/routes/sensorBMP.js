@@ -38,7 +38,8 @@ router.post('/', async (req, res) => {
       direction,
       temperature,
       pressure,
-      altitude
+      altitude,
+      device: device._id  // Establecer la referencia al dispositivo
     };
 
     // Guardar los datos en la base de datos (asumiendo que tienes un modelo llamado SensorBMP)
