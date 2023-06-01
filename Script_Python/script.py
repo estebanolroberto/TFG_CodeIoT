@@ -28,6 +28,7 @@ def on_message(client, user, msg):
             # Preparar el objeto JSON con los datos del sensor HTU
             data = {
                 "sensor_type": "HTU",
+                "direction": "0X40",
                 "temperature": temperature,
                 "humidity": humidity
             }
@@ -46,6 +47,7 @@ def on_message(client, user, msg):
             # Preparar el objeto JSON con los datos del sensor BMP
             data = {
                 "sensor_type": "BMP",
+                "direction": "0X76",
                 "temperature": temperature_bmp,
                 "pressure": pressure_bmp,
                 "altitude": altitude_bmp
