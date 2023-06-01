@@ -21,10 +21,10 @@ router.get('/:id', function (req, res, next) {
 });
 
 
-/* POST a new data */
+/* POST a new data for sensorBMP */
 router.post('/', async (req, res) => {
   try {
-    const { sensor_type, direction, temperature, pressure,altitude , deviceId } = req.body;
+    const { temperature, pressure, direction, altitude } = req.body;
     // Buscar el dispositivo relacionado en "Devices" por dirección
     const device = await Device.findOne({ direction });
 
@@ -32,22 +32,25 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ error: 'No se encontró el dispositivo relacionado' });
     }
 
-    // Crear el nuevo documento en "DevicesConnected" con la referencia al dispositivo
-    const newDeviceConnected = new Sensores({
-      sensor_type,
+    // Preparar el objeto JSON con los datos del sensor BMP
+    const data = {
+      sensor_type: "BMP",
       direction,
       temperature,
       pressure,
-      altitude,
-      device: device._id  // Establecer la referencia al dispositivo
-    });
+      altitude
+    };
 
-    const savedDeviceConnected = await newDeviceConnected.save();
-    res.json(savedDeviceConnected);
+    // Guardar los datos en la base de datos (asumiendo que tienes un modelo llamado SensorBMP)
+    const newSensorData = new Sensores(data);
+    const savedSensorData = await newSensorData.save();
+
+    res.json(savedSensorData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 /* PUT data by Id */
 router.put("/:id", function (req, res, next) {
     Sensores.findById(req.params.id, function (err, sensores) {
