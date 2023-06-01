@@ -33,7 +33,7 @@ router.post('/', async (req, res) => {
     }
 
     // Crear el nuevo documento en "DevicesConnected" con la referencia al dispositivo
-    const newDeviceConnected = new devicesConnected_model({
+    const newDeviceConnected = new Sensores({
       sensor_type,
       direction,
       temperature,

@@ -201,14 +201,15 @@ void handleSensorData()
     Serial.print("Temperature: ");
     Serial.print(temperature);
     sensor_bmp["temperature"] = temperature;
+    sensor_bmp["direction"] = "0X76";
     Serial.println(" *C");
     Serial.print("Presión: ");
     Serial.print(pressure * 0.01);
-    sensor_bmp["Pressure"] = pressure;
+    sensor_bmp["pressure"] = pressure;
     Serial.println(" mbar");
     Serial.print("Altitud: ");
     Serial.print(altitud);
-    sensor_bmp["Altitude"] = altitud;
+    sensor_bmp["altitude"] = altitud;
     Serial.println(" m");
     Serial.println();
     serializeJson(sensor_bmp, String_sensor_bmp);
@@ -239,6 +240,7 @@ void handleSensorData()
     Serial.print("Humidity: ");
     Serial.print(humidity);
     sensor_htu["humidity"] = humidity;
+    sensor_htu["direction"] = "0X40";
     Serial.println(" %");
     Serial.print("Temperature: ");
     Serial.print(temperature);

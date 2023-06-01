@@ -1,9 +1,13 @@
 import paho.mqtt.client as mqtt
 import requests
 import json
+import datetime
 
 # URL base de la API REST local
-API_BASE_URL = "http://192.168.0.123:5000/"
+API_BASE_URL = "http://192.168.0.124:5000/"
+
+# Variable para almacenar la fecha y hora de inicio del script
+script_start_time = datetime.datetime.now()
 
 # método para conectar
 def on_connect(client, user, flags, rc):
@@ -14,6 +18,11 @@ def on_connect(client, user, flags, rc):
 
 # método para recibir mensajes
 def on_message(client, user, msg):
+    message_time = datetime.datetime.now()
+    if message_time < script_start_time:
+        # Descartar mensajes antiguos
+        return
+
     print("MESSAGE RECEIVED from TOPIC " + msg.topic + " : " + str(msg.payload))
 
     # Obtener el nombre de la colección de la URL en función del tema MQTT
@@ -25,10 +34,11 @@ def on_message(client, user, msg):
             message_json = json.loads(msg.payload)
             temperature = message_json["temperature"]
             humidity = message_json["humidity"]
+            direction_htu = message_json["direction"]
             # Preparar el objeto JSON con los datos del sensor HTU
             data = {
                 "sensor_type": "HTU",
-                "direction": "0X40",
+                "direction": direction_htu,
                 "temperature": temperature,
                 "humidity": humidity
             }
@@ -43,11 +53,12 @@ def on_message(client, user, msg):
             message_json = json.loads(msg.payload)
             temperature_bmp = message_json["temperature"]
             pressure_bmp = message_json["pressure"]
+            direction_bmp = message_json["direction"]
             altitude_bmp = message_json["altitude"]
             # Preparar el objeto JSON con los datos del sensor BMP
             data = {
                 "sensor_type": "BMP",
-                "direction": "0X76",
+                "direction": direction_bmp,
                 "temperature": temperature_bmp,
                 "pressure": pressure_bmp,
                 "altitude": altitude_bmp
@@ -90,6 +101,7 @@ client.on_connect = on_connect
 client.on_message = on_message
 
 client.username_pw_set("roberto", "1299")
-client.connect("192.168.0.123", 1883, 60)
+client.connect("192.168.0.124", 1883, 60)
 
 client.loop_forever()
+
