@@ -21,7 +21,8 @@
 Adafruit_SSD1306 *pDisplay = new Adafruit_SSD1306 (SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 void displayDataInBox(int posX, int posY, const String &dato,Adafruit_SSD1306 *pDisplay);
 void handleSensorData();
-
+void showScreen(int screenIndex);
+void handleButton();
 /**
  * The above code defines four interrupt service routines for different timers in C++.
  */
@@ -58,11 +59,13 @@ void setup()
   ConnectWiFi_STA();
   http.begin(url);
   pinMode(SS, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(POTENTIOMETER_PIN, INPUT);
   pDisplay->begin(SSD1306_SWITCHCAPVCC, 0x3C);
   pDisplay->clearDisplay();
   pDisplay->setTextSize(1); 
   pDisplay->setTextColor(WHITE);
-
+  showScreen(currentScreen);
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimerDataDevices, true);
   timerAlarmWrite(timer, timeCollectData, true);
@@ -91,6 +94,10 @@ void setup()
  */
 void loop()
 {
+  
+    int potValue = analogRead(POTENTIOMETER_PIN);
+    brightness = map(potValue, 0, 4096, 0, 255);
+    pDisplay->dim(brightness);
   if (interruptFlag)
   {
     interruptFlag = false;
@@ -102,28 +109,7 @@ void loop()
     interruptFlag_scanner = false;
     i2c_Scanner();
     scanSPI();
-    pDisplay->clearDisplay(); 
-
-    int amountData = activeItems.size();
-    for (int i = 0; i < 6; i++)
-    {
-      int posX = (i % 3) * (SCREEN_WIDTH / 3);  
-      int posY = (i / 3) * (SCREEN_HEIGHT / 2); 
-
-      if (i < amountData)
-      {
-        String data = activeItems.get(i);
-        displayDataInBox(posX, posY, data,pDisplay);
-      }
-      else
-      {
-        int boxWidth = SCREEN_WIDTH / 3;
-        int boxHigh = SCREEN_HEIGHT / 2;
-        pDisplay->drawRect(posX, posY, boxWidth, boxHigh, WHITE);
-      }
-    }
-
-    pDisplay->display(); 
+    handleButton();
   }
 
   if (interruptFlag_BD)
@@ -139,6 +125,97 @@ void loop()
     updateFrecuency();
     timerAlarmWrite(timer, frecuenciaActual_New, true);
   }
+}
+
+void handleButton() {
+  // Leer el estado actual del botón
+  int buttonState = digitalRead(BUTTON_PIN);
+
+  // Verificar si el botón ha sido presionado
+  if (buttonState == LOW) {
+    // Esperar a que se suelte el botón
+    while (digitalRead(BUTTON_PIN) == LOW) {
+      delay(10);
+    }
+
+    // Cambiar a la siguiente pantalla
+    currentScreen = (currentScreen + 1) % (activeItems.size() / 2);
+
+    // Actualizar el índice de inicio de los datos
+    startIndex = currentScreen * 2;
+
+    // Mostrar la pantalla actualizada
+    showScreen(currentScreen);
+  } else {
+    static unsigned long lastScreenChangeTime = 0;
+    unsigned long currentTime = millis();
+    unsigned long elapsedTime = currentTime - lastScreenChangeTime;
+
+    if (elapsedTime >= 1500) {
+      // Cambiar a la siguiente pantalla
+      currentScreen = (currentScreen + 1) % (activeItems.size() / 2);
+
+      // Actualizar el índice de inicio de los datos
+      startIndex = currentScreen * 2;
+
+      // Mostrar la pantalla actualizada
+      showScreen(currentScreen);
+
+      // Actualizar el tiempo del último cambio de pantalla
+      lastScreenChangeTime = currentTime;
+    }
+  }
+}
+
+void showScreen(int screenIndex) {
+  // Limpiar el display
+  pDisplay->clearDisplay();
+
+  // Dibujar las líneas verticales de las celdas
+  for (int col = 1; col < MAX_COLUMNS; col++) {
+    int x = col * CELL_WIDTH;
+    pDisplay->drawFastVLine(x, 0, SCREEN_HEIGHT, WHITE);
+  }
+
+  // Dibujar las líneas horizontales de las celdas
+  for (int row = 1; row < MAX_ROWS; row++) {
+    int y = row * CELL_HEIGHT;
+    pDisplay->drawFastHLine(0, y, SCREEN_WIDTH, WHITE);
+  }
+
+  // Calcular el índice de inicio de los datos en la linked list
+  int startIndex = screenIndex * (MAX_COLUMNS * MAX_ROWS);
+
+  // Mostrar los datos en las celdas correspondientes
+  pDisplay->setTextSize(1);
+  pDisplay->setTextColor(WHITE);
+  pDisplay->setTextWrap(false);
+
+  for (int row = 0; row < MAX_ROWS; row++) {
+    for (int col = 0; col < MAX_COLUMNS; col++) {
+      // Calcular el índice del dato en la linked list
+      int dataIndex = startIndex + (row * MAX_COLUMNS) + col;
+
+      // Verificar si el índice está dentro del rango válido
+      if (dataIndex < activeItems.size()) {
+        // Obtener el dato de la linked list
+        String data = activeItems.get(dataIndex);
+
+        // Calcular la posición de la celda
+        int cellX = col * CELL_WIDTH;
+        int cellY = row * CELL_HEIGHT;
+
+        // Mostrar el dato en la celda
+        int textX = cellX + (CELL_WIDTH - (data.length() * 6)) / 2; // Asumiendo fuente de ancho fijo de 6 píxeles por carácter
+        int textY = cellY + (CELL_HEIGHT - 8) / 2; // Altura de fuente de 8 píxeles
+        pDisplay->setCursor(textX, textY);
+        pDisplay->println(data);
+      }
+    }
+  }
+
+  // Actualizar el display
+  pDisplay->display();
 }
 
 /**

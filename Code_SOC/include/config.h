@@ -72,3 +72,29 @@ LinkedList<String> directions;
 double maxElement = 0.0;
 String maxElementString;
 
+// Variable para almacenar el brillo de la pantalla
+int brightness = 255;
+
+// Variable para almacenar el índice de la pantalla actual
+int currentScreen = 0;
+
+// Variable para almacenar el índice de inicio de los datos en la linked list
+int startIndex = 0;
+
+// Definir las dimensiones de la pantalla OLED
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+// Definir el número máximo de columnas y filas por pantalla
+#define MAX_COLUMNS 2
+#define MAX_ROWS 1
+
+// Definir el tamaño de cada celda en función del número de columnas y filas
+#define CELL_WIDTH (SCREEN_WIDTH / MAX_COLUMNS)
+#define CELL_HEIGHT (SCREEN_HEIGHT / MAX_ROWS)
+
+// Definir el pin para el botón
+#define BUTTON_PIN 13
+
+// Definir el pin para el potenciómetro
+#define POTENTIOMETER_PIN 36
