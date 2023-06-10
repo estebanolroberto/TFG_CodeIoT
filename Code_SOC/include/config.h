@@ -72,3 +72,18 @@ LinkedList<String> directions;
 double maxElement = 0.0;
 String maxElementString;
 
+// Variable para almacenar el brillo de la pantalla
+int brightness = 255;
+
+// Variable para almacenar el índice de la pantalla actual
+int currentScreen = 0;
+
+// Variable para almacenar el índice de inicio de los datos en la linked list
+int startIndex = 0;
+
+// Definir el pin para el botón
+#define BUTTON_PIN 13
+
+// Definir el pin para el potenciómetro
+#define POTENTIOMETER_PIN 36
+int potentiometerValue;
