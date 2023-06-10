@@ -17,12 +17,20 @@
 #include <Adafruit_SSD1306.h>
 #include <LinkedList.h>
 #include "functions.h"
+#include <U8g2lib.h>
 
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* clock=*/ 22, /* data=*/ 21, /* reset=*/ 255);
 Adafruit_SSD1306 *pDisplay = new Adafruit_SSD1306 (SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 void displayDataInBox(int posX, int posY, const String &dato,Adafruit_SSD1306 *pDisplay);
 void handleSensorData();
-void showScreen(int screenIndex);
-void handleButton();
+
+int originalTextSize = 1;
+int currentTextSize = originalTextSize;
+
+
+volatile bool buttonPressed = false;
+
+
 /**
  * The above code defines four interrupt service routines for different timers in C++.
  */
@@ -53,19 +61,21 @@ void setup()
 
   Serial.begin(9600);
   Wire.begin();
+  u8g2.begin();
   SPI.begin();
   WiFi.onEvent(WiFiEvent);
   InitMqtt();
   ConnectWiFi_STA();
   http.begin(url);
   pinMode(SS, OUTPUT);
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_PIN,INPUT_PULLUP);
+  potentiometerValue = 0;
   pinMode(POTENTIOMETER_PIN, INPUT);
   pDisplay->begin(SSD1306_SWITCHCAPVCC, 0x3C);
   pDisplay->clearDisplay();
   pDisplay->setTextSize(1); 
   pDisplay->setTextColor(WHITE);
-  showScreen(currentScreen);
+
   timer = timerBegin(0, 80, true);
   timerAttachInterrupt(timer, &onTimerDataDevices, true);
   timerAlarmWrite(timer, timeCollectData, true);
@@ -85,6 +95,8 @@ void setup()
   timerAttachInterrupt(timer3, &onTimerGetInformationAPI, true);
   timerAlarmWrite(timer3, timePrintInformation, true);
   timerAlarmEnable(timer3);
+
+
 }
 
 /**
@@ -94,10 +106,32 @@ void setup()
  */
 void loop()
 {
-  
-    int potValue = analogRead(POTENTIOMETER_PIN);
-    brightness = map(potValue, 0, 4096, 0, 255);
-    pDisplay->dim(brightness);
+  potentiometerValue = analogRead(POTENTIOMETER_PIN);
+  int brightness = map(potentiometerValue, 0, 4095, 0, 255); // Ajusta el rango según sea necesario
+  pDisplay->ssd1306_command(SSD1306_SETCONTRAST);
+  pDisplay->ssd1306_command(brightness);
+  u8g2.setContrast(brightness);
+
+  if (digitalRead(BUTTON_PIN) == LOW) {
+  // Botón presionado
+  delay(50); // Pequeña pausa para evitar rebotes
+  if (digitalRead(BUTTON_PIN) == LOW) {
+    // Confirma que el botón sigue presionado después de la pausa
+    currentTextSize++; // Incrementa el tamaño del texto
+    if (currentTextSize > 2) {
+      currentTextSize = originalTextSize; // Vuelve al tamaño original si se alcanza el tamaño máximo
+    }
+
+    // Aplica el nuevo tamaño del texto
+    pDisplay->setTextSize(currentTextSize);
+
+    // Espera a que el botón sea liberado
+    while (digitalRead(BUTTON_PIN) == LOW) {
+      delay(10);
+    }
+  }
+}
+
   if (interruptFlag)
   {
     interruptFlag = false;
@@ -109,7 +143,29 @@ void loop()
     interruptFlag_scanner = false;
     i2c_Scanner();
     scanSPI();
-    handleButton();
+    pDisplay->clearDisplay(); 
+
+    int amountData = activeItems.size();
+    for (int i = 0; i < 6; i++)
+    {
+      int posX = (i % 3) * (SCREEN_WIDTH / 3);  
+      int posY = (i / 3) * (SCREEN_HEIGHT / 2); 
+
+      if (i < amountData)
+      {
+        String data = activeItems.get(i);
+        displayDataInBox(posX, posY, data,pDisplay);
+      }
+      else
+      {
+        int boxWidth = SCREEN_WIDTH / 3;
+        int boxHigh = SCREEN_HEIGHT / 2;
+        pDisplay->drawRect(posX, posY, boxWidth, boxHigh, WHITE);
+        pDisplay->setTextColor(WHITE,BLACK);
+      }
+    }
+
+    pDisplay->display(); 
   }
 
   if (interruptFlag_BD)
@@ -127,97 +183,6 @@ void loop()
   }
 }
 
-void handleButton() {
-  // Leer el estado actual del botón
-  int buttonState = digitalRead(BUTTON_PIN);
-
-  // Verificar si el botón ha sido presionado
-  if (buttonState == LOW) {
-    // Esperar a que se suelte el botón
-    while (digitalRead(BUTTON_PIN) == LOW) {
-      delay(10);
-    }
-
-    // Cambiar a la siguiente pantalla
-    currentScreen = (currentScreen + 1) % (activeItems.size() / 2);
-
-    // Actualizar el índice de inicio de los datos
-    startIndex = currentScreen * 2;
-
-    // Mostrar la pantalla actualizada
-    showScreen(currentScreen);
-  } else {
-    static unsigned long lastScreenChangeTime = 0;
-    unsigned long currentTime = millis();
-    unsigned long elapsedTime = currentTime - lastScreenChangeTime;
-
-    if (elapsedTime >= 1500) {
-      // Cambiar a la siguiente pantalla
-      currentScreen = (currentScreen + 1) % (activeItems.size() / 2);
-
-      // Actualizar el índice de inicio de los datos
-      startIndex = currentScreen * 2;
-
-      // Mostrar la pantalla actualizada
-      showScreen(currentScreen);
-
-      // Actualizar el tiempo del último cambio de pantalla
-      lastScreenChangeTime = currentTime;
-    }
-  }
-}
-
-void showScreen(int screenIndex) {
-  // Limpiar el display
-  pDisplay->clearDisplay();
-
-  // Dibujar las líneas verticales de las celdas
-  for (int col = 1; col < MAX_COLUMNS; col++) {
-    int x = col * CELL_WIDTH;
-    pDisplay->drawFastVLine(x, 0, SCREEN_HEIGHT, WHITE);
-  }
-
-  // Dibujar las líneas horizontales de las celdas
-  for (int row = 1; row < MAX_ROWS; row++) {
-    int y = row * CELL_HEIGHT;
-    pDisplay->drawFastHLine(0, y, SCREEN_WIDTH, WHITE);
-  }
-
-  // Calcular el índice de inicio de los datos en la linked list
-  int startIndex = screenIndex * (MAX_COLUMNS * MAX_ROWS);
-
-  // Mostrar los datos en las celdas correspondientes
-  pDisplay->setTextSize(1);
-  pDisplay->setTextColor(WHITE);
-  pDisplay->setTextWrap(false);
-
-  for (int row = 0; row < MAX_ROWS; row++) {
-    for (int col = 0; col < MAX_COLUMNS; col++) {
-      // Calcular el índice del dato en la linked list
-      int dataIndex = startIndex + (row * MAX_COLUMNS) + col;
-
-      // Verificar si el índice está dentro del rango válido
-      if (dataIndex < activeItems.size()) {
-        // Obtener el dato de la linked list
-        String data = activeItems.get(dataIndex);
-
-        // Calcular la posición de la celda
-        int cellX = col * CELL_WIDTH;
-        int cellY = row * CELL_HEIGHT;
-
-        // Mostrar el dato en la celda
-        int textX = cellX + (CELL_WIDTH - (data.length() * 6)) / 2; // Asumiendo fuente de ancho fijo de 6 píxeles por carácter
-        int textY = cellY + (CELL_HEIGHT - 8) / 2; // Altura de fuente de 8 píxeles
-        pDisplay->setCursor(textX, textY);
-        pDisplay->println(data);
-      }
-    }
-  }
-
-  // Actualizar el display
-  pDisplay->display();
-}
-
 /**
  * The function displays a given string in a rectangle on a screen.
  * 
@@ -232,13 +197,14 @@ void displayDataInBox(int posX, int posY, const String &data, Adafruit_SSD1306 *
 {
   int boxWidth = SCREEN_WIDTH / 3;
   int boxHigh = SCREEN_HEIGHT / 2;
-  display->drawRect(posX, posY, boxWidth, boxHigh, WHITE);
+  pDisplay->drawRect(posX, posY, boxWidth, boxHigh, WHITE);
   int textPosX = posX + (boxWidth / 2) - (data.length() * 3); 
-  int textPosY = posY + (boxHigh / 2) - 8;                
-  display->setTextColor(WHITE);
-  display->setTextSize(1);
-  display->setCursor(textPosX, textPosY);
-  display->print(data);
+  int textPosY = posY + (boxHigh / 2) - 8;
+  pDisplay->setTextColor(WHITE,BLACK);
+  pDisplay->setTextSize(currentTextSize);
+  pDisplay->setCursor(textPosX, textPosY);
+  pDisplay->print(data);
+  
 }
 
 /**
@@ -263,6 +229,7 @@ void handleSensorData()
     bmp280.begin(0x76);
     pDisplay->clearDisplay();
     pDisplay->setCursor(0, 0);
+    pDisplay->setTextColor(WHITE,BLACK);
     pDisplay->println("Sensor BMP280");
     pDisplay->println("Address: 0x76");
     pDisplay->print("Temperature: ");
@@ -305,6 +272,7 @@ void handleSensorData()
     htu21d.begin();
     pDisplay->clearDisplay();
     pDisplay->setCursor(0, 0);
+    pDisplay->setTextColor(WHITE,BLACK);
     pDisplay->println("Sensor HTU21D");
     pDisplay->println("Address: 0x40");
     pDisplay->print("Temperature: ");
@@ -337,6 +305,7 @@ void handleSensorData()
     htu21d.begin();
     pDisplay->clearDisplay();
     pDisplay->setCursor(0, 0);
+    pDisplay->setTextColor(WHITE,BLACK);
     pDisplay->println("Actuator");
     pDisplay->println("Address: 0x3C");
     pDisplay->print("Screen OLED ");
@@ -350,6 +319,7 @@ void handleSensorData()
     Serial.println("Any sensor detected.");
     pDisplay->clearDisplay();
     pDisplay->setCursor(0, 0);
+    pDisplay->setTextColor(WHITE,BLACK);
     pDisplay->println("Any sensor detected.");
     pDisplay->display();
   }
