@@ -19,17 +19,15 @@
 #include "functions.h"
 #include <U8g2lib.h>
 
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* clock=*/ 22, /* data=*/ 21, /* reset=*/ 255);
-Adafruit_SSD1306 *pDisplay = new Adafruit_SSD1306 (SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-void displayDataInBox(int posX, int posY, const String &dato,Adafruit_SSD1306 *pDisplay);
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* clock=*/22, /* data=*/21, /* reset=*/255);
+Adafruit_SSD1306 *pDisplay = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+void displayDataInBox(int posX, int posY, const String &dato, Adafruit_SSD1306 *pDisplay);
 void handleSensorData();
 
 int originalTextSize = 1;
 int currentTextSize = originalTextSize;
 
-
 volatile bool buttonPressed = false;
-
 
 /**
  * The above code defines four interrupt service routines for different timers in C++.
@@ -68,12 +66,12 @@ void setup()
   ConnectWiFi_STA();
   http.begin(url);
   pinMode(SS, OUTPUT);
-  pinMode(BUTTON_PIN,INPUT_PULLUP);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
   potentiometerValue = 0;
   pinMode(POTENTIOMETER_PIN, INPUT);
   pDisplay->begin(SSD1306_SWITCHCAPVCC, 0x3C);
   pDisplay->clearDisplay();
-  pDisplay->setTextSize(1); 
+  pDisplay->setTextSize(1);
   pDisplay->setTextColor(WHITE);
 
   timer = timerBegin(0, 80, true);
@@ -95,8 +93,6 @@ void setup()
   timerAttachInterrupt(timer3, &onTimerGetInformationAPI, true);
   timerAlarmWrite(timer3, timePrintInformation, true);
   timerAlarmEnable(timer3);
-
-
 }
 
 /**
@@ -112,25 +108,29 @@ void loop()
   pDisplay->ssd1306_command(brightness);
   u8g2.setContrast(brightness);
 
-  if (digitalRead(BUTTON_PIN) == LOW) {
-  // Botón presionado
-  delay(50); // Pequeña pausa para evitar rebotes
-  if (digitalRead(BUTTON_PIN) == LOW) {
-    // Confirma que el botón sigue presionado después de la pausa
-    currentTextSize++; // Incrementa el tamaño del texto
-    if (currentTextSize > 2) {
-      currentTextSize = originalTextSize; // Vuelve al tamaño original si se alcanza el tamaño máximo
-    }
+  if (digitalRead(BUTTON_PIN) == LOW)
+  {
+    // Botón presionado
+    delay(50); // Pequeña pausa para evitar rebotes
+    if (digitalRead(BUTTON_PIN) == LOW)
+    {
+      // Confirma que el botón sigue presionado después de la pausa
+      currentTextSize++; // Incrementa el tamaño del texto
+      if (currentTextSize > 2)
+      {
+        currentTextSize = originalTextSize; // Vuelve al tamaño original si se alcanza el tamaño máximo
+      }
 
-    // Aplica el nuevo tamaño del texto
-    pDisplay->setTextSize(currentTextSize);
+      // Aplica el nuevo tamaño del texto
+      pDisplay->setTextSize(currentTextSize);
 
-    // Espera a que el botón sea liberado
-    while (digitalRead(BUTTON_PIN) == LOW) {
-      delay(10);
+      // Espera a que el botón sea liberado
+      while (digitalRead(BUTTON_PIN) == LOW)
+      {
+        delay(10);
+      }
     }
   }
-}
 
   if (interruptFlag)
   {
@@ -143,29 +143,29 @@ void loop()
     interruptFlag_scanner = false;
     i2c_Scanner();
     scanSPI();
-    pDisplay->clearDisplay(); 
+    pDisplay->clearDisplay();
 
     int amountData = activeItems.size();
     for (int i = 0; i < 6; i++)
     {
-      int posX = (i % 3) * (SCREEN_WIDTH / 3);  
-      int posY = (i / 3) * (SCREEN_HEIGHT / 2); 
+      int posX = (i % 3) * (SCREEN_WIDTH / 3);
+      int posY = (i / 3) * (SCREEN_HEIGHT / 2);
 
       if (i < amountData)
       {
         String data = activeItems.get(i);
-        displayDataInBox(posX, posY, data,pDisplay);
+        displayDataInBox(posX, posY, data, pDisplay);
       }
       else
       {
         int boxWidth = SCREEN_WIDTH / 3;
         int boxHigh = SCREEN_HEIGHT / 2;
         pDisplay->drawRect(posX, posY, boxWidth, boxHigh, WHITE);
-        pDisplay->setTextColor(WHITE,BLACK);
+        pDisplay->setTextColor(WHITE, BLACK);
       }
     }
 
-    pDisplay->display(); 
+    pDisplay->display();
   }
 
   if (interruptFlag_BD)
@@ -185,7 +185,7 @@ void loop()
 
 /**
  * The function displays a given string in a rectangle on a screen.
- * 
+ *
  * @param posX The x-coordinate of the top-left corner of the rectangle where the data will be
  * displayed.
  * @param posY The y-coordinate of the top-left corner of the rectangle where the data will be
@@ -198,13 +198,12 @@ void displayDataInBox(int posX, int posY, const String &data, Adafruit_SSD1306 *
   int boxWidth = SCREEN_WIDTH / 3;
   int boxHigh = SCREEN_HEIGHT / 2;
   pDisplay->drawRect(posX, posY, boxWidth, boxHigh, WHITE);
-  int textPosX = posX + (boxWidth / 2) - (data.length() * 3); 
+  int textPosX = posX + (boxWidth / 2) - (data.length() * 3);
   int textPosY = posY + (boxHigh / 2) - 8;
-  pDisplay->setTextColor(WHITE,BLACK);
+  pDisplay->setTextColor(WHITE, BLACK);
   pDisplay->setTextSize(currentTextSize);
   pDisplay->setCursor(textPosX, textPosY);
   pDisplay->print(data);
-  
 }
 
 /**
@@ -229,7 +228,7 @@ void handleSensorData()
     bmp280.begin(0x76);
     pDisplay->clearDisplay();
     pDisplay->setCursor(0, 0);
-    pDisplay->setTextColor(WHITE,BLACK);
+    pDisplay->setTextColor(WHITE, BLACK);
     pDisplay->println("Sensor BMP280");
     pDisplay->println("Address: 0x76");
     pDisplay->print("Temperature: ");
@@ -272,7 +271,7 @@ void handleSensorData()
     htu21d.begin();
     pDisplay->clearDisplay();
     pDisplay->setCursor(0, 0);
-    pDisplay->setTextColor(WHITE,BLACK);
+    pDisplay->setTextColor(WHITE, BLACK);
     pDisplay->println("Sensor HTU21D");
     pDisplay->println("Address: 0x40");
     pDisplay->print("Temperature: ");
@@ -305,7 +304,7 @@ void handleSensorData()
     htu21d.begin();
     pDisplay->clearDisplay();
     pDisplay->setCursor(0, 0);
-    pDisplay->setTextColor(WHITE,BLACK);
+    pDisplay->setTextColor(WHITE, BLACK);
     pDisplay->println("Actuator");
     pDisplay->println("Address: 0x3C");
     pDisplay->print("Screen OLED ");
@@ -319,7 +318,7 @@ void handleSensorData()
     Serial.println("Any sensor detected.");
     pDisplay->clearDisplay();
     pDisplay->setCursor(0, 0);
-    pDisplay->setTextColor(WHITE,BLACK);
+    pDisplay->setTextColor(WHITE, BLACK);
     pDisplay->println("Any sensor detected.");
     pDisplay->display();
   }
