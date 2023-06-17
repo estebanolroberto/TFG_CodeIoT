@@ -1,7 +1,10 @@
 #define BMP280_ADDRESS (0x76)
 #define HTU21DF_I2CADDR (0x40)
 #define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64       
+#define SCREEN_HEIGHT 64
+#define BUTTON_PIN 13
+#define POTENTIOMETER_PIN 36
+
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
 Adafruit_BMP280 bmp280;
 HTTPClient http;
@@ -39,6 +42,17 @@ int HTTPCODE_SUCCESS = 200;
 int maxFrequency = 0;
 const int MAX_DEVICES = 20; 
 
+
+bool htu21dDetected = false;
+bool bmp280Detected = false;
+bool screenDetected = false;
+volatile bool interruptFlag = false;
+volatile bool interruptFlag_scanner = false;
+volatile bool interruptFlag_BD = false;
+volatile bool interruptFlagGetInformationAPI = false;
+volatile bool interruptFlag_ChangeFrecuency = false;
+volatile bool buttonPressed = false;
+
 struct Item {
   String name;
   String type_device;
@@ -55,14 +69,6 @@ struct Item {
   String interrupt_pin;
 };
 
-bool htu21dDetected = false;
-bool bmp280Detected = false;
-bool screenDetected = false;
-volatile bool interruptFlag = false;
-volatile bool interruptFlag_scanner = false;
-volatile bool interruptFlag_BD = false;
-volatile bool interruptFlagGetInformationAPI = false;
-volatile bool interruptFlag_ChangeFrecuency = false;
 String deviceAddress,frecuencia_data;
 String maxFreq;
 String lastItem,currentItem = "";
@@ -72,18 +78,7 @@ LinkedList<String> directions;
 double maxElement = 0.0;
 String maxElementString;
 
-// Variable para almacenar el brillo de la pantalla
 int brightness = 255;
-
-// Variable para almacenar el índice de la pantalla actual
 int currentScreen = 0;
-
-// Variable para almacenar el índice de inicio de los datos en la linked list
 int startIndex = 0;
-
-// Definir el pin para el botón
-#define BUTTON_PIN 13
-
-// Definir el pin para el potenciómetro
-#define POTENTIOMETER_PIN 36
 int potentiometerValue;
