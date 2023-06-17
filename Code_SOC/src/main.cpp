@@ -27,8 +27,6 @@ void handleSensorData();
 int originalTextSize = 1;
 int currentTextSize = originalTextSize;
 
-volatile bool buttonPressed = false;
-
 /**
  * The above code defines four interrupt service routines for different timers in C++.
  */
@@ -61,15 +59,16 @@ void setup()
   Wire.begin();
   u8g2.begin();
   SPI.begin();
+  pDisplay->begin(SSD1306_SWITCHCAPVCC, 0x3C);
   WiFi.onEvent(WiFiEvent);
   InitMqtt();
   ConnectWiFi_STA();
   http.begin(url);
+  potentiometerValue = 0;
   pinMode(SS, OUTPUT);
   pinMode(BUTTON_PIN, INPUT_PULLUP);
-  potentiometerValue = 0;
   pinMode(POTENTIOMETER_PIN, INPUT);
-  pDisplay->begin(SSD1306_SWITCHCAPVCC, 0x3C);
+
   pDisplay->clearDisplay();
   pDisplay->setTextSize(1);
   pDisplay->setTextColor(WHITE);
@@ -103,28 +102,22 @@ void setup()
 void loop()
 {
   potentiometerValue = analogRead(POTENTIOMETER_PIN);
-  int brightness = map(potentiometerValue, 0, 4095, 0, 255); // Ajusta el rango según sea necesario
+  int brightness = map(potentiometerValue, 0, 4095, 0, 255);
   pDisplay->ssd1306_command(SSD1306_SETCONTRAST);
   pDisplay->ssd1306_command(brightness);
   u8g2.setContrast(brightness);
 
   if (digitalRead(BUTTON_PIN) == LOW)
   {
-    // Botón presionado
-    delay(50); // Pequeña pausa para evitar rebotes
+    delay(50); 
     if (digitalRead(BUTTON_PIN) == LOW)
     {
-      // Confirma que el botón sigue presionado después de la pausa
-      currentTextSize++; // Incrementa el tamaño del texto
+      currentTextSize++; 
       if (currentTextSize > 2)
       {
-        currentTextSize = originalTextSize; // Vuelve al tamaño original si se alcanza el tamaño máximo
+        currentTextSize = originalTextSize; 
       }
-
-      // Aplica el nuevo tamaño del texto
       pDisplay->setTextSize(currentTextSize);
-
-      // Espera a que el botón sea liberado
       while (digitalRead(BUTTON_PIN) == LOW)
       {
         delay(10);
