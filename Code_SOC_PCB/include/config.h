@@ -18,8 +18,8 @@ hw_timer_t * timer2 =  NULL;
 const char* ssid     = "VodafoneMobileWiFi-984998";
 const char* password = "2009693581";
 const char *hostname = "ESP32_CASA";
-const char* url = "http://192.168.0.124:5000/devices";
-const char* apiUrl = "http://192.168.0.124:5000/devices/direction/";
+const char* url = "http://192.168.0.128:5000/devices";
+const char* apiUrl = "http://192.168.0.128:5000/devices/direction/";
 const char *HTU_MQTT_TOPIC = "sensorHTU";
 const char *BMP_MQTT_TOPIC = "sensorBMP";
 const char *DEVICES_MQTT_TOPIC ="devices_connected";   
@@ -28,7 +28,7 @@ IPAddress ip(192, 168, 0, 222);
 IPAddress gateway(192, 168, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
 
-const IPAddress MQTT_HOST(192, 168, 0, 124); //ip del broker
+const IPAddress MQTT_HOST(192, 168, 0, 128); //ip del broker
 const int MQTT_PORT = 1883;
 const char *MQTT_USER = "roberto";
 const char *MQTT_PASSWORD = "1299";

@@ -19,7 +19,6 @@
 #include "functions.h"
 #include <U8g2lib.h>
 
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* clock=*/22, /* data=*/21, /* reset=*/255);
 Adafruit_SSD1306 *pDisplay = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 void displayDataInBox(int posX, int posY, const String &dato, Adafruit_SSD1306 *pDisplay);
 void handleSensorData();
@@ -57,7 +56,6 @@ void setup()
 
   Serial.begin(9600);
   Wire.begin();
-  u8g2.begin();
   SPI.begin();
   pDisplay->begin(SSD1306_SWITCHCAPVCC, 0x3C);
   WiFi.onEvent(WiFiEvent);
@@ -95,17 +93,18 @@ void setup()
 }
 
 /**
- * The loop function checks for various interrupt flags and performs corresponding actions such as
- * handling sensor data, scanning I2C and SPI devices, displaying data on a screen, retrieving data
- * from a database, and updating information from an API.
- */
+
+The loop function checks for various interrupt flags and performs corresponding actions such as
+handling sensor data, scanning I2C and SPI devices, displaying data on a screen, retrieving data
+from a database, and updating information from an API.
+*/
 void loop()
 {
+  
   potentiometerValue = analogRead(POTENTIOMETER_PIN);
   int brightness = map(potentiometerValue, 0, 4095, 0, 255);
   pDisplay->ssd1306_command(SSD1306_SETCONTRAST);
   pDisplay->ssd1306_command(brightness);
-  u8g2.setContrast(brightness);
 
   if (digitalRead(BUTTON_PIN) == LOW)
   {
@@ -199,8 +198,10 @@ void displayDataInBox(int posX, int posY, const String &data, Adafruit_SSD1306 *
 }
 
 /**
- * This function reads data from BMP280 and HTU21D sensors, displays the data on an OLED screen,
- * publishes the data to MQTT topics, and prints the data to the serial monitor.
+ * The handleSensorData function checks for the presence of various sensors (BMP280 and HTU21D)
+ * and an OLED screen (Actuator). If a sensor or screen is detected, it reads the relevant data
+ * and displays it on the screen. If no sensor or screen is detected, it displays a message indicating
+ * that no sensor is detected.
  */
 void handleSensorData()
 {

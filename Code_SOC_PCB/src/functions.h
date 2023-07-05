@@ -175,9 +175,11 @@ void printElementsAPI()
   }
 }
 
-/*
-* The `updateFrecuency()` function is iterating through each item in the `frecuencyList` and finding the highest frequency value. It then converts the highest frequency value to a float and calculates the corresponding frequency in microseconds. 
-* Finally, it prints the highest frequency value and the corresponding frequency in microseconds to the serial monitor.
+/**
+
+The updateFrecuency() function iterates through each item in the frecuencyList and finds the highest frequency value. 
+It then converts the highest frequency value to a float and calculates the corresponding frequency in microseconds. 
+Finally, it prints the highest frequency value and the corresponding frequency in microseconds to the serial monitor.
 */
 void updateFrecuency()
 {
