@@ -4,6 +4,9 @@
 #define SCREEN_HEIGHT 64
 #define BUTTON_PIN 26
 #define POTENTIOMETER_PIN 32
+#define BMP_CS_1 (5)
+
+Adafruit_BMP280 sensor1(BMP_CS_1);
 
 Adafruit_HTU21DF htu21d = Adafruit_HTU21DF();
 Adafruit_BMP280 bmp280;

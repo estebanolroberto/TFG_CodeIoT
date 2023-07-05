@@ -135,7 +135,6 @@ void loop()
   {
     interruptFlag_scanner = false;
     i2c_Scanner();
-    scanSPI();
     pDisplay->clearDisplay();
 
     int amountData = activeItems.size();
@@ -212,12 +211,14 @@ void handleSensorData()
   String String_sensor_htu;
   String String_sensor_bmp;
 
+  
   Wire.beginTransmission(BMP280_ADDRESS);
   if (Wire.endTransmission() == 0)
-  {
+{
     float temperature = bmp280.readTemperature();
     float pressure = bmp280.readPressure();
-    float altitud = bmp280.readAltitude();
+    float altitude = bmp280.readAltitude();
+  
     bmp280.begin(0x76);
     pDisplay->clearDisplay();
     pDisplay->setCursor(0, 0);
@@ -231,7 +232,7 @@ void handleSensorData()
     pDisplay->print(pressure * 0.01);
     pDisplay->println("mbar");
     pDisplay->print("Altitude: ");
-    pDisplay->print(altitud);
+    pDisplay->print(altitude);
     pDisplay->println(" m");
     Serial.println("Detected sensor BMP280.");
     Serial.print("Temperature: ");
@@ -244,8 +245,49 @@ void handleSensorData()
     sensor_bmp["pressure"] = pressure;
     Serial.println(" mbar");
     Serial.print("Altitud: ");
-    Serial.print(altitud);
-    sensor_bmp["altitude"] = altitud;
+    Serial.print(altitude);
+    sensor_bmp["altitude"] = altitude;
+    Serial.println(" m");
+    Serial.println();
+    serializeJson(sensor_bmp, String_sensor_bmp);
+    PublishMqtt(String_sensor_bmp.c_str(), BMP_MQTT_TOPIC);
+    bmp280Detected = true;
+    pDisplay->display();
+    delay(2500);
+  }else if (sensor1.begin()){
+    
+    float temperature = sensor1.readTemperature();
+    float pressure = sensor1.readPressure();
+    float altitude = sensor1.readAltitude();
+
+
+    pDisplay->clearDisplay();
+    pDisplay->setCursor(0, 0);
+    pDisplay->setTextColor(WHITE, BLACK);
+    pDisplay->println("Sensor BMP280");
+    pDisplay->println("Connect SPI");
+    pDisplay->print("Temperature: ");
+    pDisplay->print(temperature);
+    pDisplay->println(" *C");
+    pDisplay->print("Pressure: ");
+    pDisplay->print(pressure * 0.01);
+    pDisplay->println("mbar");
+    pDisplay->print("Altitude: ");
+    pDisplay->print(altitude);
+    pDisplay->println(" m");
+    Serial.println("Detected sensor BMP280 (SPI).");
+    Serial.print("Temperature: ");
+    Serial.print(temperature);
+    sensor_bmp["temperature"] = temperature;
+    sensor_bmp["direction"] = "0X76";
+    Serial.println(" *C");
+    Serial.print("Presión: ");
+    Serial.print(pressure * 0.01);
+    sensor_bmp["pressure"] = pressure;
+    Serial.println(" mbar");
+    Serial.print("Altitud: ");
+    Serial.print(altitude);
+    sensor_bmp["altitude"] = altitude;
     Serial.println(" m");
     Serial.println();
     serializeJson(sensor_bmp, String_sensor_bmp);

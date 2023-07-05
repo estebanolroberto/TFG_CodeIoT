@@ -192,6 +192,10 @@ void updateFrecuency()
       maxElementString = elementString;
     }
   }
+  if (maxElementString.isEmpty())
+  {
+    maxElementString = "0.05";
+  }
   Serial.println("Higher Frecuency :");
   Serial.println(maxElementString);
   float floatValue = maxElementString.toFloat();
